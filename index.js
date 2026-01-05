@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let isPermutation = false;
 
-    let sixseven = hehehaw;
-    
     let conditionData;
 
     let result;
