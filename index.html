@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combination Generator</title>
+    <link href="index.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="sidebar">
+        <button class="toggle-btn" title="Toggle sidebar">☰</button>
+        <div class="sidebar-content">
+            <h2>Control</h2>
+                    <label for="data-input" class="label">Data (characters)</label>
+        <input id="data-input" class="data-input" type="text" placeholder="e.g. abcdefg" value="abcdefg" />
+        <label for="size-input" class="label">Select Amount</label>
+        <input id="size-input" class="size-input" type="number" min="1" max="10" value="4" />
+            <button class="button generate-btn" type="button">Generate</button>
+        </div>
+        <div class="condition-box">
+        <h3>Conditions</h3>
+        </div>
+            
+        <button class="stickTogether">Stick Together</button>
+
+        <button class="switch-toggle">Permutation</button>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <h1>Explorer</h1>
+            <p>Generate and visualize</p>
+        </div>
+        <div class="container"></div>
+    </div>
+    <div class="right-sidebar">
+        <div class="right-content">
+            <h2>Inspector</h2>
+        </div>
+    </div>
+    <script type="module" src="index.js"></script>
+</body>
+</html>
