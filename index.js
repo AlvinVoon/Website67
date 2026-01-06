@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const conditionBoX = document.querySelector('.condition-box');
     const stickTogetherBtn = document.querySelector('.stickTogether');
     const inspector = document.querySelector('.right-content');
+    const demo = document.querySelector('.demoPlatlet');
+    const testBtn = document.querySelector('.test-btn');
+    const demoBtn = document.querySelector('.demo-btn');
 
     let isPermutation = false;
 
@@ -171,6 +174,126 @@ document.addEventListener('DOMContentLoaded', () => {
         boxlet.appendChild(title);
         return boxlet;
     };
+
+        const createDemo = (item) => {
+        const boxlet = document.createElement('div');
+        boxlet.classList.add('demo-boxlets');
+
+        const title = document.createElement('h3');
+        title.textContent = item;
+
+        boxlet.appendChild(title);
+        return boxlet;
+    };
+
+    const demoPlatlet = () => {
+        if (!result || result.length === 0) {
+            console.log('Please generate combinations/permutations first');
+            return;
+        }
+
+        demo.innerHTML = '';
+        const demoBox = document.createElement('div');
+        demoBox.classList.add('demo-box');
+        demo.appendChild(demoBox);
+
+        let hehehaw;
+
+        console.log(conditionData);
+        
+        // Separate items into condition and non-condition
+        const conditionItems = [];
+        const nonConditionItems = [];
+        
+        for (let i = 0; i < result[0].length; i++) {
+            hehehaw = result[i];
+            const item = hehehaw[i];
+            
+            if (conditionData && conditionData.includes(item)) {
+                conditionItems.push(item);
+            } else {
+                nonConditionItems.push(item);
+            }
+        }
+        
+        // Display condition items first (grouped together)
+        conditionItems.forEach(item => {
+            const boxElement = createDemo(item);
+            boxElement.classList.add('condition-highlighted');
+            demoBox.appendChild(boxElement);
+        });
+        
+        // Then display non-condition items
+        nonConditionItems.forEach(item => {
+            const boxElement = createDemo(item);
+            demoBox.appendChild(boxElement);
+        });
+    };
+
+
+    testBtn.addEventListener('click', () => {
+        if (!result || result.length === 0) {
+            console.log('Please generate combinations/permutations first');
+            return;
+        }
+
+        container.innerHTML = '';
+        let currentIndex = 0;
+        const fadeDelay = 1500; // Total time for fade out + fade in (1.5 seconds)
+        const fadeDuration = 600; // Individual fade transition duration
+
+        const showSlide = (index) => {
+            container.innerHTML = '';
+            const boxElement = createBox(result[index]);
+            boxElement.classList.add('slideshow-box');
+            container.appendChild(boxElement);
+        };
+
+        const nextSlide = () => {
+            // Fade out current slide
+            const currentBox = container.querySelector('.slideshow-box');
+            if (currentBox) {
+                currentBox.style.opacity = '0';
+                currentBox.style.transition = `opacity ${fadeDuration}ms ease-out`;
+            }
+
+            // Wait for fade out, then show next slide and fade in
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % result.length;
+                showSlide(currentIndex);
+                const newBox = container.querySelector('.slideshow-box');
+                newBox.style.opacity = '0';
+                newBox.style.transition = `opacity ${fadeDuration}ms ease-in`;
+                
+                // Trigger fade in
+                setTimeout(() => {
+                    newBox.style.opacity = '1';
+                }, 10);
+            }, fadeDuration);
+        };
+
+        // Show first slide
+        showSlide(currentIndex);
+        const firstBox = container.querySelector('.slideshow-box');
+        firstBox.style.opacity = '1';
+        firstBox.style.transition = `opacity ${fadeDuration}ms ease-in`;
+
+        // Set up interval to show next slides
+        const slideshowInterval = setInterval(nextSlide, fadeDelay);
+
+        // Allow clicking test button again to stop slideshow
+        testBtn.onclick = () => {
+            clearInterval(slideshowInterval);
+            container.innerHTML = '';
+            testBtn.onclick = null;
+        };
+    });
+
+    // Demo button event listener
+    demoBtn.addEventListener('click', () => {
+        demoPlatlet();
+    });
+
 
     let stickTogether = false;
 

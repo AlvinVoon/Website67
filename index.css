@@ -289,6 +289,34 @@ body {
   transform: translateY(0);
 }
 
+/* Demo button styling */
+.demo-btn,
+.test-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.demo-btn:hover,
+.test-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.demo-btn:active,
+.test-btn:active {
+  transform: translateY(0);
+}
+
 /* inputs in sidebar */
 .label {
   color: rgba(255,255,255,0.9);
@@ -322,7 +350,7 @@ body {
 
 /* Right sidebar (mirrors left sidebar but aligned to the right) */
 .right-sidebar {
-  width: 250px;
+  width: 275px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
   padding: 20px;
@@ -346,4 +374,73 @@ body {
     color: white;
     font-size: 20px;
     font-weight: 600;
+  }
+
+  .demo-box {
+    width: 100%;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+  }
+
+  .demo-boxlets {
+    width: auto;
+    flex: 1;
+    height: 60px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+    margin: 5px;
+    text-align: center;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  /* Highlighted condition boxes in demo - outer box border */
+  .demo-boxlets.condition-highlighted {
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.8), 
+                0 0 20px rgba(0, 212, 255, 0.6),
+                inset 0 0 0 1px rgba(0, 212, 255, 0.3);
+    transform: scale(1.08);
+    padding: 8px;
+  }
+
+
+  .box-slideshow {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+  }
+
+  /* Slideshow box styling */
+  .slideshow-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    opacity: 1;
+    transition: opacity 0.6s ease-in-out;
   }
