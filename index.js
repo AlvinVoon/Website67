@@ -1,4 +1,25 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
+import { animate, stagger, splitText } from './animejs/dist/bundles/anime.esm.min.js';
+
+
+const { chars } = splitText('h2', { words: false, chars: true });
+
+animate(chars, {
+  // Property keyframes
+  y: [
+    { to: '-2.75rem', ease: 'outExpo', duration: 600 },
+    { to: 0, ease: 'outBounce', duration: 800, delay: 100 }
+  ],
+  // Property specific parameters
+  rotate: {
+    from: '-1turn',
+    delay: 0
+  },
+  delay: stagger(50),
+  ease: 'inOutCirc',
+  loopDelay: 1000,
+  loop: true
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.querySelector('.generate-btn');
@@ -9,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const conditionBoX = document.querySelector('.condition-box');
     const stickTogetherBtn = document.querySelector('.stickTogether');
     const inspector = document.querySelector('.right-content');
-    
+
     let isPermutation = false;
 
     let conditionData;
@@ -20,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
     });
-    
+
     // Generate combinations or permutations (reads inputs)
     const dataInput = document.querySelector('#data-input');
     const sizeInput = document.querySelector('#size-input');
@@ -28,37 +49,38 @@ document.addEventListener('DOMContentLoaded', () => {
     generateBtn.addEventListener('click', () => {
         container.innerHTML = '';
 
-        inspector.innerHTML = '';
-
-
         const dataStr = (dataInput && dataInput.value.trim()) ? dataInput.value.trim() : 'abcdefg';
         const arr = dataStr.split('');
         const k = (sizeInput && parseInt(sizeInput.value, 10)) || 4;
 
         conditionSelector(arr);
 
-
-
-
         if (!isPermutation) {
             result = new Combinatorics.Permutation(arr, k).toArray();
-                    const title = document.createElement('h3');
-        title.textContent = `Result "${result.length}"`;
-        inspector.appendChild(title);
-            console.log(result);
+            generateResult(result.length);
         } else {
             result = new Combinatorics.Combination(arr, k).toArray();
-                    const title = document.createElement('h3');
-        title.textContent = `Result "${result.length}"`;
-        inspector.appendChild(title);
+            generateResult(result.length);
         }
-        
-        
+
+
         result.forEach(combo => {
             const boxElement = createBox(combo);
             container.appendChild(boxElement);
         });
     });
+
+    const generateResult = (resultx) => {
+        inspector.innerHTML = '';
+        const title = document.createElement('h3');
+        title.textContent = `Result "${resultx}"`;
+        inspector.appendChild(title);
+
+        const calculationStep = document.createElement('h3');
+        calculationStep.textContent = `${dataInput.value.length} P ${sizeInput.value}`;
+        inspector.appendChild(calculationStep);
+
+    }
 
     const createBox = (combination) => {
         const box = document.createElement('div');
@@ -80,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selected = Array.from(selectedConditions);
         conditionData = selected.join("");
         console.log('Selected Conditions:', conditionData);
-       // console.log('Count:', selected.length);
+        // console.log('Count:', selected.length);
         return selected;
     };
 
@@ -178,10 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         container.innerHTML = '';
 
+        let indexs = 0;
+
         result.forEach((item, index) => {
             if (item.join('').includes(conditionData)) {
+                indexs++;
                 const boxElement = createBox(item);
                 container.appendChild(boxElement);
+                generateResult(indexs);
                 console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}}"`);
             }
         });
