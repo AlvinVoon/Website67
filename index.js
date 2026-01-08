@@ -1,7 +1,6 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
 
-
-    let gameMode = false;
+let gameMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.querySelector('.generate-btn');
@@ -16,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const testBtn = document.querySelector('.test-btn');
     const demoBtn = document.querySelector('.demo-btn');
     const gameBtn = document.querySelector('.game-btn');
+    const modeSwitch = document.querySelector('.modeSwitch');
 
     let isPermutation = false;
 
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return boxlet;
     };
 
-        const createDemo = (item) => {
+    const createDemo = (item) => {
         const boxlet = document.createElement('div');
         boxlet.classList.add('demo-boxlets');
 
@@ -204,29 +204,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let hehehaw;
 
         console.log(conditionData);
-        
+
         // Separate items into condition and non-condition
         const conditionItems = [];
         const nonConditionItems = [];
-        
+
         for (let i = 0; i < result[0].length; i++) {
             hehehaw = result[i];
             const item = hehehaw[i];
-            
+
             if (conditionData && conditionData.includes(item)) {
                 conditionItems.push(item);
             } else {
                 nonConditionItems.push(item);
             }
         }
-        
+
         // Display condition items first (grouped together)
         conditionItems.forEach(item => {
             const boxElement = createDemo(item);
             boxElement.classList.add('condition-highlighted');
             demoBox.appendChild(boxElement);
         });
-        
+
         // Then display non-condition items
         nonConditionItems.forEach(item => {
             const boxElement = createDemo(item);
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newBox = container.querySelector('.slideshow-box');
                 newBox.style.opacity = '0';
                 newBox.style.transition = `opacity ${fadeDuration}ms ease-in`;
-                
+
                 // Trigger fade in
                 setTimeout(() => {
                     newBox.style.opacity = '1';
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(stickTogether);
     });
 
- 
+
     gameBtn.addEventListener('click', () => {
         gameMode = !gameMode;
         if (gameMode) {
@@ -377,16 +377,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (title) title.textContent = value;
     };
 
-        const setGameBoxletClass = (row, col, value) => {
+    const setGameBoxletClass = (row, col, value) => {
         const boxlet = getGameBoxlet(row, col);
         if (!boxlet) return;
         boxlet.classList.add(value);
     };
 
     const checkAnswer = (input) => {
-      //  console.log('Checking answer:', input);
+        //  console.log('Checking answer:', input);
         for (let i = 0; i < input.length; i++) {
-         //   console.log(question.includes(input[i]));
+            //   console.log(question.includes(input[i]));
             if (input[i] !== question[i]) {
                 if (question.includes(input[i])) {
                     setGameBoxletClass(currentGameRow, i, 'misplaced');
@@ -417,18 +417,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     let input = [];
-    
+
+    const createCircle = () => {
+        const circleContainer = document.createElement('div');
+        circleContainer.classList.add('circle-container', 'rotating');
+        container.appendChild(circleContainer);
+
+        let number = result[0].length;
+
+        for (let i = 0; i < number; i++) {
+            const angle = (i / number) * (2 * Math.PI);
+            const x = 200 + 150 * Math.cos(angle);
+            const y = 165 + 150 * Math.sin(angle);  
+            console.log(x, y);
+
+            const circleBoxlet = document.createElement('div');
+            const title = document.createElement('h3');
+            const icon = document.createElement('img');
+            icon.src = './asset/chair.png';
+            icon.style.width = '40px';
+            icon.style.height = '40px';
+            icon.style.position = 'absolute';
+            circleBoxlet.appendChild(icon);
+            title.textContent = result[0][i];
+
+            
+            circleBoxlet.appendChild(title);
+            circleBoxlet.classList.add('boxlets', 'circle-boxlet', 'rotating-boxlet');
+            circleBoxlet.style.position = 'absolute';
+            circleBoxlet.style.left = `${x}px`;
+            circleBoxlet.style.top = `${y}px`;
+            circleContainer.appendChild(circleBoxlet);
+        }
+
+    }
+
+
+    modeSwitch.addEventListener('click', () => {
+        container.innerHTML = '';
+            createCircle();  
+    });
+
     // Keyboard handling for game mode
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (!gameMode) return;
 
         const eventKey = event.key;
         const key = eventKey.toUpperCase();
 
-    //  console.log(key);
+        //  console.log(key);
 
-     //   console.log("Current column", currentGameCol);
-      //  console.log("Current row", currentGameRow);
+        //   console.log("Current column", currentGameCol);
+        //  console.log("Current row", currentGameRow);
 
         // Handle Backspace
         if (key === 'Backspace' || key === 'BACKSPACE') {
@@ -445,10 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (key === 'ENTER') {
             event.preventDefault();
             if (currentGameCol >= GAME_DEFAULT_COLS) {
-                checkAnswer(input); 
+                checkAnswer(input);
                 if (currentGameRow < (gameRowEls.length - 1)) {
                     currentGameRow++;
-                  //  console.log(currentGameRow);
+                    //  console.log(currentGameRow);
                     currentGameCol = 0;
                 }
                 input = [];
