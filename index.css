@@ -291,7 +291,8 @@ body {
 
 /* Demo button styling */
 .demo-btn,
-.test-btn {
+.test-btn,
+.game-btn {
   background: rgba(255, 255, 255, 0.15);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -305,7 +306,8 @@ body {
 }
 
 .demo-btn:hover,
-.test-btn:hover {
+.test-btn:hover,
+.game-btn:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
@@ -444,3 +446,64 @@ body {
     opacity: 1;
     transition: opacity 0.6s ease-in-out;
   }
+
+  .game-boxlet {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #ffffff 0%, #bd9aa8 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(255, 118, 140, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .game-boxlet h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #333333;
+    font-weight: 600;
+  }
+
+  .game-boxlet.correct {
+        width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #c6d6b1 0%, #7fc049 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(111, 217, 159, 0.695);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+    .game-boxlet.wrong {
+        width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #feb0b0 0%, #ff1616 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(111, 217, 159, 0.695);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .game-boxlet.misplaced {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #daff62 0%, #ffe11f 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(111, 217, 159, 0.695);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+

@@ -1,5 +1,8 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
 
+
+    let gameMode = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.querySelector('.generate-btn');
     const toggleBtn = document.querySelector('.toggle-btn');
@@ -12,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const demo = document.querySelector('.demoPlatlet');
     const testBtn = document.querySelector('.test-btn');
     const demoBtn = document.querySelector('.demo-btn');
+    const gameBtn = document.querySelector('.game-btn');
 
     let isPermutation = false;
 
@@ -318,6 +322,86 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(stickTogether);
     });
 
+ 
+    gameBtn.addEventListener('click', () => {
+        gameMode = !gameMode;
+        if (gameMode) {
+            initGameBoard(5, 4);
+        } else {
+            container.innerHTML = '';
+        }
+    });
+
+    // Game board state
+    const GAME_DEFAULT_ROWS = 5;
+    const GAME_DEFAULT_COLS = 4;
+    let gameRowEls = [];
+    let currentGameRow = 0;
+    let currentGameCol = 0;
+    const question = "ABCD"
+
+    const initGameBoard = (rows = GAME_DEFAULT_ROWS, cols = GAME_DEFAULT_COLS) => {
+        container.innerHTML = '';
+        gameRowEls = [];
+        currentGameRow = 0;
+        currentGameCol = 0;
+
+        for (let r = 0; r < rows; r++) {
+            const rowEl = document.createElement('div');
+            rowEl.classList.add('box', 'game-row');
+            rowEl.dataset.row = String(r);
+
+            for (let c = 0; c < cols; c++) {
+                const boxlet = createBoxlet('');
+                boxlet.classList.add('game-boxlet');
+                boxlet.dataset.row = String(r);
+                boxlet.dataset.col = String(c);
+                rowEl.appendChild(boxlet);
+            }
+
+            container.appendChild(rowEl);
+            gameRowEls.push(rowEl);
+        }
+    };
+
+    const getGameBoxlet = (row, col) => {
+        const rowEl = gameRowEls[row];
+        if (!rowEl) return null;
+        return rowEl.querySelector(`.game-boxlet[data-col="${col}"]`);
+    };
+
+    const setGameBoxlet = (row, col, value) => {
+        const boxlet = getGameBoxlet(row, col);
+        if (!boxlet) return;
+        const title = boxlet.querySelector('h3');
+        if (title) title.textContent = value;
+    };
+
+        const setGameBoxletClass = (row, col, value) => {
+        const boxlet = getGameBoxlet(row, col);
+        if (!boxlet) return;
+        boxlet.classList.add(value);
+    };
+
+    const checkAnswer = (input) => {
+      //  console.log('Checking answer:', input);
+        for (let i = 0; i < input.length; i++) {
+         //   console.log(question.includes(input[i]));
+            if (input[i] !== question[i]) {
+                if (question.includes(input[i])) {
+                    setGameBoxletClass(currentGameRow, i, 'misplaced');
+                }
+                else {
+                    setGameBoxletClass(currentGameRow, i, 'wrong');
+                }
+            }
+            else if (input[i] === question[i]) {
+                setGameBoxletClass(currentGameRow, i, 'correct');
+            }
+
+        }
+    };
+
     // Toggle between combination and permutation
     switchToggle.addEventListener('click', () => {
         isPermutation = !isPermutation;
@@ -329,6 +413,57 @@ document.addEventListener('DOMContentLoaded', () => {
             switchToggle.textContent = 'Permutation';
             switchToggle.classList.add('combination');
             switchToggle.classList.remove('permutation');
+        }
+    });
+
+    let input = [];
+    
+    // Keyboard handling for game mode
+    document.addEventListener('keydown', function(event) {
+        if (!gameMode) return;
+
+        const eventKey = event.key;
+        const key = eventKey.toUpperCase();
+
+    //  console.log(key);
+
+     //   console.log("Current column", currentGameCol);
+      //  console.log("Current row", currentGameRow);
+
+        // Handle Backspace
+        if (key === 'Backspace' || key === 'BACKSPACE') {
+            event.preventDefault();
+            if (currentGameCol > 0) {
+                input.pop();
+                currentGameCol--;
+                setGameBoxlet(currentGameRow, currentGameCol, '');
+            }
+            return;
+        }
+
+        // Handle Enter: move to next row if current row filled
+        if (key === 'ENTER') {
+            event.preventDefault();
+            if (currentGameCol >= GAME_DEFAULT_COLS) {
+                checkAnswer(input); 
+                if (currentGameRow < (gameRowEls.length - 1)) {
+                    currentGameRow++;
+                  //  console.log(currentGameRow);
+                    currentGameCol = 0;
+                }
+                input = [];
+            }
+            return;
+        }
+
+        // Only accept single-letter A-Z
+        if (key.length === 1 && /[a-zA-Z]/.test(key)) {
+            event.preventDefault();
+            if (currentGameCol < GAME_DEFAULT_COLS) {
+                input.push(key.toUpperCase());
+                setGameBoxlet(currentGameRow, currentGameCol, key.toUpperCase());
+                currentGameCol++;
+            }
         }
     });
 });
