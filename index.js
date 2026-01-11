@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const createCircle = () => {
         const circleContainer = document.createElement('div');
-        circleContainer.classList.add('circle-container', 'rotating');
+        circleContainer.classList.add('circle-container');
         container.appendChild(circleContainer);
 
         let number = result[0].length;
@@ -443,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             
             circleBoxlet.appendChild(title);
-            circleBoxlet.classList.add('boxlets', 'circle-boxlet', 'rotating-boxlet');
+            circleBoxlet.classList.add('circle-boxlet');
             circleBoxlet.style.position = 'absolute';
             circleBoxlet.style.left = `${x}px`;
             circleBoxlet.style.top = `${y}px`;
