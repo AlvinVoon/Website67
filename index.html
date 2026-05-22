@@ -20,14 +20,23 @@
             <input id="size-input" class="size-input" type="number" min="1" max="10" value="4" />
             <button class="button generate-btn" type="button">Generate</button>
         </div>
+
+
         <div class="condition-box">
             <h3>Conditions</h3>
         </div>
 
-        <button class="stickTogether">Stick Together</button>
+        <button class="button stickTogether">Stick Together</button>
 
-        <button class="modeSwitch">Circle</button>
-
+        <div class="table-inspector">
+                <img class="table-inspector-a" src="frames/boy.png" />
+                <input value="2" id="boy-input" type="number" />
+                <img class="table-inspector-b" src="frames/blue.png" />
+                <input value="3" id="blue-input" type="number" />
+                <button class="button table-btn">Generate Table</button>
+                <button style="width: 100px;" class="animate-btn">Animate</button>
+            </div>
+            
         <button class="switch-toggle">Permutation</button>
     </div>
     <div class="main-content">
@@ -35,7 +44,8 @@
             <h1>Explorer</h1>
             <p>Generate and visualize</p>
         </div>
-        <div class="container"></div>
+        <div class="container">
+        </div>
     </div>
     <div class="right-sidebar">
         <h2>Inspector</h2>

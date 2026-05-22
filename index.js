@@ -1,8 +1,10 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
+import generateMotionMachine from './motionMachine.js';
 
 let gameMode = false;
 
 document.addEventListener('DOMContentLoaded', () => {
+
     const generateBtn = document.querySelector('.generate-btn');
     const toggleBtn = document.querySelector('.toggle-btn');
     const sidebar = document.querySelector('.sidebar');
@@ -13,9 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const inspector = document.querySelector('.right-content');
     const demo = document.querySelector('.demoPlatlet');
     const testBtn = document.querySelector('.test-btn');
-    const demoBtn = document.querySelector('.demo-btn');
     const gameBtn = document.querySelector('.game-btn');
-    const modeSwitch = document.querySelector('.modeSwitch');
+
+    const boyInput = document.querySelector('#boy-input');
+    const blueInput = document.querySelector('#blue-input');
+    const table = document.createElement('canvas');
+    table.classList.add('table');
+
+    const tableBtn = document.querySelector('.table-btn');
+    const animateBtn = document.querySelector('.animate-btn');
 
     let isPermutation = false;
 
@@ -23,6 +31,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let result;
 
+    const actorElements = {}; // keyed by alphabet letter for easy lookup
+
+    const animateActor = (allSeatingArrangements) => {
+        let currentIndex = 0;
+
+        const showArrangement = (seating) => {
+                seating.forEach(({ actor, position }) => {
+                    const el = actorElements[actor];
+
+                    el.style.position='absolute';
+                    el.style.marginLeft = '0%';
+                    el.style.marginTop = '0%';
+                    // Enable smooth walking transition for position + fade in
+                    el.style.transition = 'left 1s ease-in-out, top 1s ease-in-out, opacity 0.5s ease';
+                    el.style.left = `${position.x}px`;
+                    el.style.top = `${position.y}px`;
+                    el.style.opacity = '1';
+                });
+            
+        };
+
+        const interval = setInterval(() => {
+            showArrangement(allSeatingArrangements[currentIndex]);
+            currentIndex = (currentIndex + 1) % allSeatingArrangements.length;
+        }, 2500);
+
+        // Show the first arrangement immediately
+        showArrangement(allSeatingArrangements[0]);
+        currentIndex = 1;
+    }
+
+    let allSeatingArrangements; 
+
+    const generateActor = (number) => {
+        const counter = document.createElement('h3');
+        counter.style.position = 'absolute';
+        counter.style.right = '20px';
+        counter.style.top = '20px';
+        counter.style.fontSize = '50px';
+        counter.textContent = '0';
+
+        container.appendChild(counter);
+        const frameSources = [
+            'frames/boy.png',
+            'frames/blue.png'
+        ];
+
+        const motionMachine = generateMotionMachine(table, 250, parseInt(boyInput.value) + parseInt(blueInput.value));
+
+        const originpoint = document.createElement('div');
+        originpoint.style.left = `${motionMachine.tableOriginX}px`;
+        originpoint.style.top = `${motionMachine.tableOriginY}px`;
+        originpoint.classList.add('origin-point');
+        container.appendChild(originpoint);
+
+        const alphabet = [...Array(parseInt(blueInput.value) + parseInt(boyInput.value))].map((_, i) => String.fromCharCode(i + 97));
+
+        const positions = motionMachine.positions;
+
+        // Create boy actors
+        for (let i = 0; i < number - parseInt(blueInput.value) ; i++) {
+            console.log(i);
+            const actor = document.createElement('div');
+            const hue = (i * 360 / number) % 360;
+            actor.style.backgroundImage = `url(${frameSources[0]})`;
+            actor.classList.add('actor');
+            actor.style.filter = `hue-rotate(${hue}deg)`;
+            actor.id = alphabet[i];
+            container.appendChild(actor);
+            actorElements[alphabet[i]] = actor;
+        }
+
+        // Create blue actors
+        for (let j = parseInt(boyInput.value) ; j < number; j++) {
+            console.log(j);
+            const actor = document.createElement('div');
+            const hue = (j * 360 / number) % 360
+            actor.style.backgroundImage = `url(${frameSources[1]})`
+            actor.classList.add('actor');
+            actor.style.filter = `hue-rotate(${hue}deg)`;
+            actor.id = alphabet[j];
+            container.appendChild(actor);
+            actorElements[alphabet[j]] = actor;
+        }
+
+        
+
+        // Compute circular permutations
+        const firstElement = alphabet[0];
+        const remaining = alphabet.slice(1);
+        const c = new Combinatorics.Permutation(remaining, remaining.length);
+        allSeatingArrangements = c.toArray().map(val =>
+            [firstElement, ...val].map((letter, index) => ({
+                actor: letter,
+                position: positions[index]
+            }))
+        );
+
+        generateResult(allSeatingArrangements.length);
+        console.log("Total arrangements:", allSeatingArrangements.length);
+    };
+
+
+    tableBtn.addEventListener('click', () => {
+        container.appendChild(table);
+        table.innerHTML = '';
+        generateActor(parseInt(boyInput.value) + parseInt(blueInput.value));
+    });
+
+    animateBtn.addEventListener('click', () => {
+        animateActor(allSeatingArrangements);
+    })
     // Toggle sidebar
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
@@ -86,6 +206,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper to log and display selected conditions
     const logSelected = () => {
         const selected = Array.from(selectedConditions);
+        if (selectedConditions.size > 0 ){
+            demoPlatlet();
+        }
         conditionData = selected.join("");
         console.log('Selected Conditions:', conditionData);
         // console.log('Count:', selected.length);
@@ -293,10 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     });
 
-    // Demo button event listener
-    demoBtn.addEventListener('click', () => {
-        demoPlatlet();
-    });
 
 
     let stickTogether = false;
@@ -322,7 +441,43 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(stickTogether);
     });
 
+        // Toggle between combination and permutation
+    switchToggle.addEventListener('click', () => {
+        isPermutation = !isPermutation;
+        if (isPermutation) {
+            switchToggle.textContent = 'Combination';
+            switchToggle.classList.add('permutation');
+            switchToggle.classList.remove('combination');
+        } else {
+            switchToggle.textContent = 'Permutation';
+            switchToggle.classList.add('combination');
+            switchToggle.classList.remove('permutation');
+        }
+    });
 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+      
+    
     gameBtn.addEventListener('click', () => {
         gameMode = !gameMode;
         if (gameMode) {
@@ -331,7 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
         }
     });
-
+   
     // Game board state
     const GAME_DEFAULT_ROWS = 5;
     const GAME_DEFAULT_COLS = 4;
@@ -402,61 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Toggle between combination and permutation
-    switchToggle.addEventListener('click', () => {
-        isPermutation = !isPermutation;
-        if (isPermutation) {
-            switchToggle.textContent = 'Combination';
-            switchToggle.classList.add('permutation');
-            switchToggle.classList.remove('combination');
-        } else {
-            switchToggle.textContent = 'Permutation';
-            switchToggle.classList.add('combination');
-            switchToggle.classList.remove('permutation');
-        }
-    });
-
     let input = [];
-
-    const createCircle = () => {
-        const circleContainer = document.createElement('div');
-        circleContainer.classList.add('circle-container');
-        container.appendChild(circleContainer);
-
-        let number = result[0].length;
-
-        for (let i = 0; i < number; i++) {
-            const angle = (i / number) * (2 * Math.PI);
-            const x = 200 + 150 * Math.cos(angle);
-            const y = 165 + 150 * Math.sin(angle);  
-            console.log(x, y);
-
-            const circleBoxlet = document.createElement('div');
-            const title = document.createElement('h3');
-            const icon = document.createElement('img');
-            icon.src = './asset/chair.png';
-            icon.style.width = '40px';
-            icon.style.height = '40px';
-            icon.style.position = 'absolute';
-            circleBoxlet.appendChild(icon);
-            title.textContent = result[0][i];
-
-            
-            circleBoxlet.appendChild(title);
-            circleBoxlet.classList.add('circle-boxlet');
-            circleBoxlet.style.position = 'absolute';
-            circleBoxlet.style.left = `${x}px`;
-            circleBoxlet.style.top = `${y}px`;
-            circleContainer.appendChild(circleBoxlet);
-        }
-
-    }
-
-
-    modeSwitch.addEventListener('click', () => {
-        container.innerHTML = '';
-            createCircle();  
-    });
 
     // Keyboard handling for game mode
     document.addEventListener('keydown', function (event) {
