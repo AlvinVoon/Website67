@@ -189,10 +189,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
 
-            result.forEach(combo => {
+            if (result.length > 5000){
+                container.innerHTML='Result Too Big';
+                container.style.color='white';
+                return
+        }
+        else{
+                        result.forEach(combo => {
                 const boxElement = createBox(combo);
                 container.appendChild(boxElement);
             });
+        }
         }
         else if (circleBox.checked == true) {
 
@@ -233,12 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // console.log(selected);
         console.log(selected);
         if (circleBox.checked == true && !selected.includes('a') || lineBox.checked == true) {
+            console.log('its this');
+
             conditionData = new Combinatorics.Permutation(selected, selected.length).toArray().map(arr => arr.join(''));
         }
         else {
             conditionData = selected.join("");
         }
-        console.log(conditionData);
         demoPlatlet(conditionData);
         console.log('Selected Conditions:', conditionData);
         // console.log('Count:', selected.length);
@@ -601,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
             result.forEach((item, index) => {
                 const boxElement = createBox(item);
                 container.appendChild(boxElement);
-                console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
+               // console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
             });
 
             displayResult(result.length);
