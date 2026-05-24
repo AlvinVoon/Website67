@@ -7,6 +7,20 @@
     <title>Visual</title>
     <link href="index.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: {
+                ready() {
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 </head>
 
 <body>
@@ -14,35 +28,50 @@
         <button class="toggle-btn" title="Toggle sidebar">☰</button>
         <div class="sidebar-content">
             <h2>Control</h2>
+            <button class="switch-toggle">Permutation</button>
+            <div class="sidebar-control">
+                <h3>Line</h3>
+                <input id="line" type="checkbox" />
+            </div>
             <label for="data-input" class="label">Data (characters)</label>
             <input id="data-input" class="data-input" type="text" placeholder="e.g. abcdefg" value="abcdefg" />
             <label for="size-input" class="label">Select Amount</label>
             <input id="size-input" class="size-input" type="number" min="1" max="10" value="4" />
-            <button class="button generate-btn" type="button">Generate</button>
+
         </div>
 
+        <div class="separater">-</div>
 
+        <div class="sidebar-control">
+            <h3>Circle</h3>
+            <input id="circle" type="checkbox" />
+        </div>
+        <div class="table-inspector">
+            <img class="table-inspector-a" src="frames/boy.png" />
+            <input value="2" id="boy-input" type="number" />
+            <img class="table-inspector-b" src="frames/blue.png" />
+            <input value="3" id="blue-input" type="number" />
+        </div>
+        <button class="button generate-btn" type="button">Generate</button>
+        <div class="separater">-</div>
         <div class="condition-box">
             <h3>Conditions</h3>
         </div>
 
         <button class="button stickTogether">Stick Together</button>
+        <button class="button startWith">Must Start With</button>
+        <button class="button endWith">Must End With</button>
+        <input id="condition-input" class="size-input" type="number" min="1" max="10" value="4" />
+        <button class="button conditionInputBtn">At Least Number</button>
 
-        <div class="table-inspector">
-                <img class="table-inspector-a" src="frames/boy.png" />
-                <input value="2" id="boy-input" type="number" />
-                <img class="table-inspector-b" src="frames/blue.png" />
-                <input value="3" id="blue-input" type="number" />
-                <button class="button table-btn">Generate Table</button>
-                <button style="width: 100px;" class="animate-btn">Animate</button>
-            </div>
-            
-        <button class="switch-toggle">Permutation</button>
+        <div class="separater">-</div>
+        <button class="button animate-btn">Animate</button>
     </div>
     <div class="main-content">
         <div class="header">
-            <h1>Explorer</h1>
-            <p>Generate and visualize</p>
+            <img class="logo-img" src="frames/17sf_logo.png" />
+            <img class="logo-img" src="frames/sdg4_logo.png" />
+            <p>A 17 Steps Forward Project as part of efforts towards SDG 4: Quality Education</p>
         </div>
         <div class="container">
         </div>
@@ -50,10 +79,9 @@
     <div class="right-sidebar">
         <h2>Inspector</h2>
         <div class="right-content">
+            <h3 class="calculation-step"></h3>
         </div>
         <div class="demoPlatlet"></div>
-        <button class="demo-btn">Demo</button>
-        <button class="test-btn">Test</button>
         <button class="game-btn">Game</button>
     </div>
     <script type="module" src="index.js"></script>

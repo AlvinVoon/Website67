@@ -13,19 +13,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const conditionBoX = document.querySelector('.condition-box');
     const stickTogetherBtn = document.querySelector('.stickTogether');
     const inspector = document.querySelector('.right-content');
-    const demo = document.querySelector('.demoPlatlet');
-    const testBtn = document.querySelector('.test-btn');
     const gameBtn = document.querySelector('.game-btn');
 
     const boyInput = document.querySelector('#boy-input');
     const blueInput = document.querySelector('#blue-input');
     const table = document.createElement('canvas');
     table.classList.add('table');
+    const demo = document.querySelector('.demoPlatlet');
 
     const tableBtn = document.querySelector('.table-btn');
     const animateBtn = document.querySelector('.animate-btn');
 
-    let isPermutation = false;
+    const startWithBtn = document.querySelector('.startWith');
+    const endWithBtn = document.querySelector('.endWith');
+
+    const calculationStep = document.querySelector('.calculation-step');
+
+    const conditionInputNum = document.querySelector('#condition-input');
+    const conditionInputBtn = document.querySelector('.conditionInputBtn');
+
+    const lineBox = document.querySelector('#line');
+    const circleBox = document.querySelector('#circle');
+
+    let isPermutation = true;
+
+    let startWithCondition;
+    let endWithCondition;
 
     let conditionData;
 
@@ -33,46 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const actorElements = {}; // keyed by alphabet letter for easy lookup
 
-    const animateActor = (allSeatingArrangements) => {
-        let currentIndex = 0;
+    const counter = document.createElement('h3');
 
-        const showArrangement = (seating) => {
-                seating.forEach(({ actor, position }) => {
-                    const el = actorElements[actor];
 
-                    el.style.position='absolute';
-                    el.style.marginLeft = '0%';
-                    el.style.marginTop = '0%';
-                    // Enable smooth walking transition for position + fade in
-                    el.style.transition = 'left 1s ease-in-out, top 1s ease-in-out, opacity 0.5s ease';
-                    el.style.left = `${position.x}px`;
-                    el.style.top = `${position.y}px`;
-                    el.style.opacity = '1';
-                });
-            
-        };
 
-        const interval = setInterval(() => {
-            showArrangement(allSeatingArrangements[currentIndex]);
-            currentIndex = (currentIndex + 1) % allSeatingArrangements.length;
-        }, 2500);
-
-        // Show the first arrangement immediately
-        showArrangement(allSeatingArrangements[0]);
-        currentIndex = 1;
-    }
-
-    let allSeatingArrangements; 
+    let allSeatingArrangements;
 
     const generateActor = (number) => {
-        const counter = document.createElement('h3');
         counter.style.position = 'absolute';
         counter.style.right = '20px';
         counter.style.top = '20px';
         counter.style.fontSize = '50px';
         counter.textContent = '0';
+        counter.style.color = 'white';
 
         container.appendChild(counter);
+
         const frameSources = [
             'frames/boy.png',
             'frames/blue.png'
@@ -91,9 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const positions = motionMachine.positions;
 
         // Create boy actors
-        for (let i = 0; i < number - parseInt(blueInput.value) ; i++) {
-            console.log(i);
+        for (let i = 0; i < number - parseInt(blueInput.value); i++) {
             const actor = document.createElement('div');
+            const selector = document.createElement('input');
+            selector.type = 'checkbox';
+            selector.classList.add('actor-selector');
+            selector.style.position = 'absolute';
+            actor.appendChild(selector);
             const hue = (i * 360 / number) % 360;
             actor.style.backgroundImage = `url(${frameSources[0]})`;
             actor.classList.add('actor');
@@ -104,9 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Create blue actors
-        for (let j = parseInt(boyInput.value) ; j < number; j++) {
-            console.log(j);
+        for (let j = parseInt(boyInput.value); j < number; j++) {
             const actor = document.createElement('div');
+            const selector = document.createElement('input');
+            selector.type = 'checkbox';
+            selector.style.position = 'absolute';
+            selector.classList.add('actor-selector');
+            actor.appendChild(selector);
             const hue = (j * 360 / number) % 360
             actor.style.backgroundImage = `url(${frameSources[1]})`
             actor.classList.add('actor');
@@ -116,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actorElements[alphabet[j]] = actor;
         }
 
-        
+
 
         // Compute circular permutations
         const firstElement = alphabet[0];
@@ -129,20 +126,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }))
         );
 
-        generateResult(allSeatingArrangements.length);
-        console.log("Total arrangements:", allSeatingArrangements.length);
+        console.log(allSeatingArrangements);
+        displayResult(allSeatingArrangements.length);
+        // console.log("Total arrangements:", allSeatingArrangements.length);
     };
 
 
-    tableBtn.addEventListener('click', () => {
-        container.appendChild(table);
-        table.innerHTML = '';
-        generateActor(parseInt(boyInput.value) + parseInt(blueInput.value));
-    });
+
+    document.addEventListener('input', function (e) {
+        if (e.target.matches('.actor-selector')) {
+            const actorDiv = e.target.parentElement;
+            if (e.target.checked) {
+                actorDiv.style.opacity = '0.5';
+                selectedConditions.add(actorDiv.id);
+                console.log(selectedConditions);
+                logSelected();
+            } else {
+                actorDiv.style.opacity = '1';
+            }
+        }
+    })
 
     animateBtn.addEventListener('click', () => {
         animateActor(allSeatingArrangements);
     })
+
     // Toggle sidebar
     toggleBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
@@ -152,39 +160,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataInput = document.querySelector('#data-input');
     const sizeInput = document.querySelector('#size-input');
 
-    generateBtn.addEventListener('click', () => {
-        container.innerHTML = '';
-
-        const dataStr = (dataInput && dataInput.value.trim()) ? dataInput.value.trim() : 'abcdefg';
-        const arr = dataStr.split('');
-        const k = (sizeInput && parseInt(sizeInput.value, 10)) || 4;
-
-        conditionSelector(arr);
-
-        if (!isPermutation) {
-            result = new Combinatorics.Permutation(arr, k).toArray();
-            generateResult(result.length);
-        } else {
-            result = new Combinatorics.Combination(arr, k).toArray();
-            generateResult(result.length);
-        }
-
-
-        result.forEach(combo => {
-            const boxElement = createBox(combo);
-            container.appendChild(boxElement);
-        });
+    dataInput.addEventListener('input', (e) => {
+        calculationStepFunction();
     });
 
-    const generateResult = (resultx) => {
-        inspector.innerHTML = '';
+    sizeInput.addEventListener('input', (e) => {
+        calculationStepFunction();
+    })
+
+    generateBtn.addEventListener('click', () => {
+
+        if (lineBox.checked == true) {
+            container.innerHTML = '';
+
+            const dataStr = (dataInput && dataInput.value.trim()) ? dataInput.value.trim() : 'abcdefg';
+            const arr = dataStr.split('');
+            const k = (sizeInput && parseInt(sizeInput.value, 10)) || 4;
+
+            conditionSelector(arr);
+
+            if (isPermutation) {
+                result = new Combinatorics.Permutation(arr, k).toArray();
+                console.log(result);
+                displayResult(result.length);
+            } else {
+                result = new Combinatorics.Combination(arr, k).toArray();
+                displayResult(result.length);
+            }
+
+
+            result.forEach(combo => {
+                const boxElement = createBox(combo);
+                container.appendChild(boxElement);
+            });
+        }
+        else if (circleBox.checked == true) {
+
+            //Table
+            container.appendChild(table);
+            table.innerHTML = '';
+            generateActor(parseInt(boyInput.value) + parseInt(blueInput.value));
+
+        }
+    });
+
+    const displayResult = (resultx) => {
         const title = document.createElement('h3');
         title.textContent = `Result "${resultx}"`;
         inspector.appendChild(title);
-
-        const calculationStep = document.createElement('h3');
-        calculationStep.textContent = `${dataInput.value.length} P ${sizeInput.value}`;
-        inspector.appendChild(calculationStep);
 
     }
 
@@ -206,10 +229,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper to log and display selected conditions
     const logSelected = () => {
         const selected = Array.from(selectedConditions);
-        if (selectedConditions.size > 0 ){
-            demoPlatlet();
+        // conditionData = selected.join("");
+        // console.log(selected);
+        console.log(selected);
+        if (circleBox.checked == true && !selected.includes('a') || lineBox.checked == true) {
+            conditionData = new Combinatorics.Permutation(selected, selected.length).toArray().map(arr => arr.join(''));
         }
-        conditionData = selected.join("");
+        else {
+            conditionData = selected.join("");
+        }
+        console.log(conditionData);
+        demoPlatlet(conditionData);
         console.log('Selected Conditions:', conditionData);
         // console.log('Count:', selected.length);
         return selected;
@@ -291,6 +321,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
     const createBoxlet = (item) => {
         const boxlet = document.createElement('div');
         boxlet.classList.add('boxlets');
@@ -313,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return boxlet;
     };
 
-    const demoPlatlet = () => {
+    const demoPlatlet = (conditionData) => {
         if (!result || result.length === 0) {
             console.log('Please generate combinations/permutations first');
             return;
@@ -358,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    testBtn.addEventListener('click', () => {
+    const SlideShow = () => {
         if (!result || result.length === 0) {
             console.log('Please generate combinations/permutations first');
             return;
@@ -407,15 +439,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Set up interval to show next slides
         const slideshowInterval = setInterval(nextSlide, fadeDelay);
+    };
 
-        // Allow clicking test button again to stop slideshow
-        testBtn.onclick = () => {
-            clearInterval(slideshowInterval);
-            container.innerHTML = '';
-            testBtn.onclick = null;
-        };
-    });
+    const animateActor = (allSeatingArrangements) => {
+        if (allSeatingArrangements != undefined) {
+            let currentIndex = 0;
 
+            const showArrangement = (seating) => {
+                seating.forEach(({ actor, position }) => {
+                    counter.textContent = `Arrangement ${currentIndex + 1} / ${allSeatingArrangements.length}`;
+                    const el = actorElements[actor];
+
+                    el.style.position = 'absolute';
+                    el.style.marginLeft = '0%';
+                    el.style.marginTop = '0%';
+                    // Enable smooth walking transition for position + fade in
+                    el.style.transition = 'left 1s ease-in-out, top 1s ease-in-out, opacity 0.5s ease';
+                    el.style.left = `${position.x}px`;
+                    el.style.top = `${position.y}px`;
+                    el.style.opacity = '1';
+                });
+
+            };
+
+            const interval = setInterval(() => {
+                showArrangement(allSeatingArrangements[currentIndex]);
+                currentIndex = (currentIndex + 1) % allSeatingArrangements.length;
+            }, 2500);
+
+            // Show the first arrangement immediately
+            showArrangement(allSeatingArrangements[0]);
+            currentIndex = 1;
+        }
+        else {
+            SlideShow();
+        }
+    }
+
+
+    const calculationStepFunction = () => {
+        if (isPermutation == true) {
+            if (sizeInput.value == dataInput.value.length) {
+                console.log("Factorial case");
+                calculationStep.innerHTML = `\\( ${dataInput.value.length}! \\)`;
+            }
+            else {
+                if (selectedConditions && selectedConditions.size > 0) {
+                    console.log(selectedConditions.size);
+                    let newSet = dataInput.value.length - (selectedConditions.size);
+                    let newSelection = sizeInput.value - 1;
+                    calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}\\)`;
+                } else {
+                    calculationStep.innerHTML = `\\( _${dataInput.value.length}P_${sizeInput.value} \\)`;
+                }
+            }
+            if (startWithCondition > 0) {
+                calculationStep.innerHTML += `<br>\\(_${startWithCondition}P_1 \\)`;
+            }
+        }
+        else if (isPermutation == false) {
+            if (selectedConditions && selectedConditions.size > 0) {
+                console.log(selectedConditions.size);
+                let newSet = dataInput.value.length - (selectedConditions.size);
+                let newSelection = sizeInput.value - 1;
+                calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}\\)`;
+            } else {
+                calculationStep.innerHTML = `\\( _${dataInput.value.length}C_${sizeInput.value} \\)`;
+
+            }
+            if (startWithCondition > 0) {
+                calculationStep.innerHTML += `<br>\\(_${startWithCondition}C_1 \\)`;
+            }
+        }
+        MathJax.typesetPromise([calculationStep]);
+    }
 
 
     let stickTogether = false;
@@ -423,61 +520,186 @@ document.addEventListener('DOMContentLoaded', () => {
     stickTogetherBtn.addEventListener('click', () => {
         stickTogetherBtn.classList.toggle('active');
 
-        container.innerHTML = '';
-
         let indexs = 0;
 
-        result.forEach((item, index) => {
-            if (item.join('').includes(conditionData)) {
+        if (allSeatingArrangements != undefined) {
+            console.log(conditionData);
+            if (circleBox == true && !selected.includes('a')) {
+                const filtered = allSeatingArrangements.filter(arrangement =>
+                    conditionData.some(condition =>
+                        arrangement.map(a => a.actor).join('').includes(condition)
+                    )
+                );
+            } else {
+                const filtered = allSeatingArrangements.filter(arrangement =>
+                    arrangement.map(a => a.actor).join('').includes(conditionData)
+                );
+
+                const mirrored = filtered.map(arrangement => {
+                    const chars = conditionData.split('');
+                    const firstIdx = arrangement.findIndex(a => a.actor === chars[0]);
+                    const secondIdx = arrangement.findIndex(a => a.actor === chars[1]);
+
+                    if (firstIdx === -1 || secondIdx === -1) return arrangement;
+
+                    const swapped = arrangement.map(a => ({ ...a, position: { ...a.position } }));
+
+                    // Swap array positions
+                    [swapped[firstIdx], swapped[secondIdx]] = [swapped[secondIdx], swapped[firstIdx]];
+
+                    // Swap x/y back so each actor carries the other's coordinates
+                    const tempX = swapped[firstIdx].position.x;
+                    const tempY = swapped[firstIdx].position.y;
+                    swapped[firstIdx].position.x = swapped[secondIdx].position.x;
+                    swapped[firstIdx].position.y = swapped[secondIdx].position.y;
+                    swapped[secondIdx].position.x = tempX;
+                    swapped[secondIdx].position.y = tempY;
+
+                    return swapped;
+                });
+
+                allSeatingArrangements = [...filtered, ...mirrored];
+
+                console.log(allSeatingArrangements);
+            }
+
+        }
+
+        if (result != undefined) {
+            container.innerHTML = '';
+
+            console.log(conditionData);
+            result = result.filter(item =>
+                conditionData.some(condition => item.join('').includes(condition))
+            );
+
+            result.forEach((item, index) => {
                 indexs++;
                 const boxElement = createBox(item);
                 container.appendChild(boxElement);
-                generateResult(indexs);
-                console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}}"`);
-            }
-        });
+                console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
+            });
 
+            displayResult(result.length);
+        }
+
+        calculationStepFunction();
         stickTogether = !stickTogether;
         console.log(stickTogether);
     });
 
-        // Toggle between combination and permutation
+    startWithBtn.addEventListener('click', () => {
+        startWithCondition = selectedConditions.size;
+
+        if (result != undefined) {
+
+            container.innerHTML = '';
+            let conditions = [...conditionData];
+            conditions = conditions[0].split('');
+            console.log(conditions);
+            result = result.filter(item => conditions.some(condition => item[0].includes(condition)));
+            result.forEach((item, index) => {
+                const boxElement = createBox(item);
+                container.appendChild(boxElement);
+                console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
+            });
+
+            displayResult(result.length);
+        }
+
+        calculationStepFunction();
+    })
+
+    endWithBtn.addEventListener('click', () => {
+
+        console.log(selectedConditions);
+
+        if (result != undefined) {
+
+            container.innerHTML = '';
+            let conditions = [...conditionData];
+            conditions = conditions[0].split('');
+            console.log(conditions);
+            result = result.filter(item => conditions.some(condition => item[item.length - 1].includes(condition)));
+            result.forEach((item, index) => {
+                const boxElement = createBox(item);
+                container.appendChild(boxElement);
+                console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
+            });
+
+            displayResult(result.length);
+        }
+
+        calculationStepFunction();
+    })
+
+    conditionInputBtn.addEventListener('click', () => {
+        console.log(conditionData[0]);
+        console.log(conditionInputNum.value);
+     if (result != undefined) {
+
+        container.innerHTML = '';
+
+        result = result.filter(item => {
+            const matchCount = item.filter(element => element.includes(conditionData[0])).length;
+            return matchCount >= conditionInputNum.value;
+        });
+
+        result.forEach((item, index) => {
+            const boxElement = createBox(item);
+            container.appendChild(boxElement);
+            console.log(`Condition "${conditionData[0]}" with min count "${conditionInputNum.value}" found in results. "${item}" with id "${index}"`);
+        });
+
+        displayResult(result.length);
+    }
+
+    calculationStepFunction();
+});
+
+    // Toggle between combination and permutation
     switchToggle.addEventListener('click', () => {
         isPermutation = !isPermutation;
         if (isPermutation) {
-            switchToggle.textContent = 'Combination';
-            switchToggle.classList.add('permutation');
-            switchToggle.classList.remove('combination');
-        } else {
             switchToggle.textContent = 'Permutation';
-            switchToggle.classList.add('combination');
-            switchToggle.classList.remove('permutation');
+        } else {
+            switchToggle.textContent = 'Combination';
         }
+        calculationStepFunction();
     });
 
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-      
-    
+
+    lineBox.addEventListener('change', () => {
+        circleBox.checked = false;
+    })
+
+    circleBox.addEventListener('change', () => {
+        lineBox.checked = false;
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     gameBtn.addEventListener('click', () => {
         gameMode = !gameMode;
         if (gameMode) {
@@ -486,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
         }
     });
-   
+
     // Game board state
     const GAME_DEFAULT_ROWS = 5;
     const GAME_DEFAULT_COLS = 4;
