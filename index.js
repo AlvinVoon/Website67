@@ -495,8 +495,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectedConditions && selectedConditions.size > 0) {
                     console.log(selectedConditions.size);
                     let newSet = dataInput.value.length - (selectedConditions.size);
-                    let newSelection = sizeInput.value - 1;
-                    calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}\\)`;
+                    let newSelection = sizeInput.value - selectedConditions.size;
+                    let order = sizeInput.value - selectedConditions.size + 1;
+                    calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}! \\times ${order}\\)`;
+
                 } else {
                     calculationStep.innerHTML = `\\( _${dataInput.value.length}P_${sizeInput.value} \\)`;
                 }
@@ -510,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(selectedConditions.size);
                 let newSet = dataInput.value.length - (selectedConditions.size);
                 let newSelection = sizeInput.value - 1;
-                calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}\\)`;
+                calculationStep.innerHTML = `\\( _${newSet}C_{${newSelection}} \\times ${selectedConditions.size}\\)`;
             } else {
                 calculationStep.innerHTML = `\\( _${dataInput.value.length}C_${sizeInput.value} \\)`;
 
