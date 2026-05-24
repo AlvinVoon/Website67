@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculationStep.innerHTML = `\\( ${dataInput.value.length}! \\)`;
             }
             else {
-                if (selectedConditions && selectedConditions.size > 0) {
+                if (selectedConditions && selectedConditions.size > 0 && lineBox.checked == true) {
                     console.log(selectedConditions.size);
                     let newSet = dataInput.value.length - (selectedConditions.size);
                     let newSelection = sizeInput.value - selectedConditions.size;
@@ -502,6 +502,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     calculationStep.innerHTML = `\\( _${dataInput.value.length}P_${sizeInput.value} \\)`;
                 }
+                if (selectedConditions && selectedConditions.size > 0 && circleBox.checked == true) {
+                   let total = parseInt(blueInput.value) + parseInt(boyInput.value) - 1;
+calculationStep.innerHTML = `\\((${total}-1)! \\times 2\\)`;
+                }
+
             }
             if (startWithCondition > 0) {
                 calculationStep.innerHTML += `<br>\\(_${startWithCondition}P_1 \\)`;
@@ -571,11 +576,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 allSeatingArrangements = [...filtered, ...mirrored];
 
                 console.log(allSeatingArrangements);
+                displayResult(allSeatingArrangements.length);
             }
 
         }
 
-        if (result != undefined) {
+        if (result != undefined && lineBox.checked == true) {
             container.innerHTML = '';
 
             console.log(conditionData);
