@@ -1,5 +1,28 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
 import generateMotionMachine from './motionMachine.js';
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
+import { getFirestore, addDoc, collection, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+    apiKey: "AIzaSyBlqiRasyTXBWzivMtLZkeS1p2SPgoymKY",
+    authDomain: "website67-eabea.firebaseapp.com",
+    projectId: "website67-eabea",
+    storageBucket: "website67-eabea.firebasestorage.app",
+    messagingSenderId: "108324128833",
+    appId: "1:108324128833:web:4ce0d93007037c51a79ec0",
+    measurementId: "G-60J32Z9YP4"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+const db = getFirestore(app);
 
 let gameMode = false;
 
@@ -46,13 +69,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let result;
 
+    let questionId;
+
     const actorElements = {}; // keyed by alphabet letter for easy lookup
 
     const counter = document.createElement('h3');
 
     let allSeatingArrangements;
 
-    const generateActor = (number) => {
+    const addDocFunction = async (input) => {
+        try {
+            const docRef = await addDoc(collection(db, "questions"), {
+                date: new Date(),
+                data: dataInput.value,
+                size: sizeInput.value,
+                unique: individualSwitch.checked,
+                type: lineBox.checked ? "line" : "circle",
+                result: input ? JSON.stringify(input) : null,
+                calculationStep: calculationStep.textContent ?? null
+            });
+            questionId = docRef.id;
+            console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    }
+    const updateQuestion = async (docId, input) => {
+        try {
+            const docRef = doc(db, "questions", docId);
+            await updateDoc(docRef, {
+                date: new Date(),
+                data: dataInput.value,
+                size: sizeInput.value,
+                unique: individualSwitch.checked,
+                type: lineBox.checked ? "line" : "circle",
+                result: input ? JSON.stringify(input) : null,
+                calculationStep: calculationStep.textContent ?? null
+            });
+            console.log("Document updated with ID: ", docId);
+        } catch (e) {
+            console.error("Error updating document: ", e);
+        }
+    }
+
+    const generateActor = async (number) => {
         counter.style.position = 'absolute';
         counter.style.right = '20px';
         counter.style.top = '20px';
@@ -126,11 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }))
         );
 
+        addDocFunction(allSeatingArrangements);
         console.log(allSeatingArrangements);
         displayResult(allSeatingArrangements.length);
         // console.log("Total arrangements:", allSeatingArrangements.length);
     };
-
 
     const duplicateCheck = (input) => {
         console.log(input);
@@ -193,8 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let dupArray;
 
-    generateBtn.addEventListener('click', () => {
+    generateBtn.addEventListener('click', async () => {
 
+        calculationStepFunction();
         if (lineBox.checked == true) {
             container.innerHTML = '';
 
@@ -232,6 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     container.appendChild(boxElement);
                 });
             }
+            addDocFunction(result);
+
         }
         else if (circleBox.checked == true) {
 
@@ -242,9 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
 
+
         dupArray = duplicateCheck(dataInput.value);
 
-        calculationStepFunction();
     });
 
     const displayResult = (resultx) => {
@@ -570,17 +633,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     stickTogetherBtn.addEventListener('click', () => {
         stickTogetherBtn.classList.toggle('active');
-
         let indexs = 0;
 
+        calculationStepFunction();
         if (allSeatingArrangements != undefined) {
             console.log(conditionData);
-            if (circleBox == true && !selected.includes('a')) {
+            if (circleBox.checked == true && !conditionData.includes('a')) {
                 const filtered = allSeatingArrangements.filter(arrangement =>
                     conditionData.some(condition =>
                         arrangement.map(a => a.actor).join('').includes(condition)
                     )
                 );
+                allSeatingArrangements = filtered;
+                displayResult(allSeatingArrangements.length);      
+                updateQuestion(questionId, filtered);
             } else {
                 const filtered = allSeatingArrangements.filter(arrangement =>
                     arrangement.map(a => a.actor).join('').includes(conditionData)
@@ -613,8 +679,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log(allSeatingArrangements);
                 displayResult(allSeatingArrangements.length);
-            }
+                
+            updateQuestion(questionId, allSeatingArrangements);
 
+            }
         }
 
         if (result != undefined && lineBox.checked == true) {
@@ -632,17 +700,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
             });
 
+            updateQuestion(questionId, result);
+
+
             displayResult(result.length);
         }
 
-        calculationStepFunction();
         stickTogether = !stickTogether;
         console.log(stickTogether);
     });
 
     startWithBtn.addEventListener('click', () => {
         startWithCondition = selectedConditions.size;
-
         if (result != undefined) {
 
             container.innerHTML = '';
@@ -660,12 +729,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         calculationStepFunction();
+
+        updateQuestion(questionId, result);
+
     })
 
     endWithBtn.addEventListener('click', () => {
 
         console.log(selectedConditions);
-
         if (result != undefined) {
 
             container.innerHTML = '';
@@ -682,7 +753,9 @@ document.addEventListener('DOMContentLoaded', () => {
             displayResult(result.length);
         }
 
+
         calculationStepFunction();
+        updateQuestion(questionId, result);
     })
 
     conditionInputBtn.addEventListener('click', () => {
@@ -705,6 +778,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             displayResult(result.length);
         }
+
+        updateQuestion(questionId, result);
+
 
         calculationStepFunction();
     });
