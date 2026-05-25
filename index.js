@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(counter);
 
         const frameSources = [
-            'frames/boy.png',
+            'frames/ninja-removebg-preview.png',
             'frames/blue.png'
         ];
 
