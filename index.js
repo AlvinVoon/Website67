@@ -4,20 +4,7 @@ import generateMotionMachine from './motionMachine.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
 import { getFirestore, addDoc, collection, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyBlqiRasyTXBWzivMtLZkeS1p2SPgoymKY",
-    authDomain: "website67-eabea.firebaseapp.com",
-    projectId: "website67-eabea",
-    storageBucket: "website67-eabea.firebasestorage.app",
-    messagingSenderId: "108324128833",
-    appId: "1:108324128833:web:4ce0d93007037c51a79ec0",
-    measurementId: "G-60J32Z9YP4"
-};
+import { firebaseConfig } from './env.js';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
