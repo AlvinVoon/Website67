@@ -35,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const lineBox = document.querySelector('#line');
     const circleBox = document.querySelector('#circle');
 
+    const individualSwitch = document.querySelector('#ind-switch');
+
     let isPermutation = true;
 
     let startWithCondition;
@@ -47,8 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const actorElements = {}; // keyed by alphabet letter for easy lookup
 
     const counter = document.createElement('h3');
-
-
 
     let allSeatingArrangements;
 
@@ -132,6 +132,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+    const duplicateCheck = (input) => {
+        console.log(input);
+        if (input != undefined) {
+            let temp;
+
+            temp = input.split('');
+            // Count occurrences of each character
+            const frequencyMap = {};
+            temp.forEach((element) => {
+                frequencyMap[element] = (frequencyMap[element] || 0) + 1;
+            });
+
+            const duplicateArray = [];
+            // Filter to only actual duplicates (count > 1)
+            for (const [value, count] of Object.entries(frequencyMap)) {
+                if (count > 1) {
+                    duplicateArray.push({ value, count });
+                }
+            }
+            return duplicateArray.map(({ count }) => `${count}!`).join('');
+
+        }
+    }
 
     document.addEventListener('input', function (e) {
         if (e.target.matches('.actor-selector')) {
@@ -168,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         calculationStepFunction();
     })
 
+    let dupArray;
+
     generateBtn.addEventListener('click', () => {
 
         if (lineBox.checked == true) {
@@ -181,6 +206,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (isPermutation) {
                 result = new Combinatorics.Permutation(arr, k).toArray();
+                if (individualSwitch.checked == true) {
+                    console.log(result);
+                    result =
+                        result.filter((arr, index) =>
+                            result.findIndex(a => JSON.stringify(a) === JSON.stringify(arr)) === index
+                        );
+                }
                 console.log(result);
                 displayResult(result.length);
             } else {
@@ -189,17 +221,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
 
-            if (result.length > 5000){
-                container.innerHTML='Result Too Big';
-                container.style.color='white';
+            if (result.length > 5000) {
+                container.innerHTML = 'Result Too Big';
+                container.style.color = 'white';
                 return
-        }
-        else{
-                        result.forEach(combo => {
-                const boxElement = createBox(combo);
-                container.appendChild(boxElement);
-            });
-        }
+            }
+            else {
+                result.forEach(combo => {
+                    const boxElement = createBox(combo);
+                    container.appendChild(boxElement);
+                });
+            }
         }
         else if (circleBox.checked == true) {
 
@@ -209,6 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
             generateActor(parseInt(boyInput.value) + parseInt(blueInput.value));
 
         }
+
+        dupArray = duplicateCheck(dataInput.value);
+
+        calculationStepFunction();
     });
 
     const displayResult = (resultx) => {
@@ -484,47 +520,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     const calculationStepFunction = () => {
+        let type;
         if (isPermutation == true) {
-            if (sizeInput.value == dataInput.value.length) {
-                console.log("Factorial case");
-                calculationStep.innerHTML = `\\( ${dataInput.value.length}! \\)`;
-            }
-            else {
-                if (selectedConditions && selectedConditions.size > 0 && lineBox.checked == true) {
-                    console.log(selectedConditions.size);
-                    let newSet = dataInput.value.length - (selectedConditions.size);
-                    let newSelection = sizeInput.value - selectedConditions.size;
-                    let order = sizeInput.value - selectedConditions.size + 1;
-                    calculationStep.innerHTML = `\\( _${newSet}P_{${newSelection}} \\times ${selectedConditions.size}! \\times ${order}\\)`;
-
-                } else {
-                    calculationStep.innerHTML = `\\( _${dataInput.value.length}P_${sizeInput.value} \\)`;
-                }
-                if (selectedConditions && selectedConditions.size > 0 && circleBox.checked == true) {
-                   let total = parseInt(blueInput.value) + parseInt(boyInput.value) - 1;
-calculationStep.innerHTML = `\\((${total}-1)! \\times 2\\)`;
-                }
-
-            }
-            if (startWithCondition > 0) {
-                calculationStep.innerHTML += `<br>\\(_${startWithCondition}P_1 \\)`;
-            }
+            type = 'P';
         }
         else if (isPermutation == false) {
-            if (selectedConditions && selectedConditions.size > 0) {
+            type = 'C';
+        }
+        if (sizeInput.value == dataInput.value.length) {
+            console.log("Factorial case");
+            calculationStep.innerHTML = `\\( ${dataInput.value.length}! \\)`;
+        }
+        else {
+            if (selectedConditions && selectedConditions.size > 0 && lineBox.checked == true) {
                 console.log(selectedConditions.size);
                 let newSet = dataInput.value.length - (selectedConditions.size);
-                let newSelection = sizeInput.value - 1;
-                calculationStep.innerHTML = `\\( _${newSet}C_{${newSelection}} \\times ${selectedConditions.size}\\)`;
-            } else {
-                calculationStep.innerHTML = `\\( _${dataInput.value.length}C_${sizeInput.value} \\)`;
+                let newSelection = sizeInput.value - selectedConditions.size;
+                let order = sizeInput.value - selectedConditions.size + 1;
+                calculationStep.innerHTML = `\\( _${newSet}${type}_{${newSelection}} \\times ${selectedConditions.size}! \\times ${order}\\)`;
 
+            } else {
+                calculationStep.innerHTML = `\\( _${dataInput.value.length}${type}_${sizeInput.value} \\)`;
             }
-            if (startWithCondition > 0) {
-                calculationStep.innerHTML += `<br>\\(_${startWithCondition}C_1 \\)`;
+            if (selectedConditions && selectedConditions.size > 0 && circleBox.checked == true) {
+                let total = parseInt(blueInput.value) + parseInt(boyInput.value) - 1;
+                calculationStep.innerHTML = `\\((${total}-1)! \\times 2\\)`;
             }
+
+        }
+        if (startWithCondition > 0) {
+            calculationStep.innerHTML += `<br>\\(_${startWithCondition}${type}_1 \\)`;
+        }
+        if (individualSwitch.checked == true) {
+            if (dupArray != undefined) {
+                console.log(dupArray);
+                calculationStep.innerHTML = `\\( \\frac{${dataInput.value.length}!}{${dupArray}} \\)`;
+            }
+            else {
+                calculationStep.innerHTML = `Please generate first`;
+            }
+
         }
         MathJax.typesetPromise([calculationStep]);
     }
@@ -617,7 +653,7 @@ calculationStep.innerHTML = `\\((${total}-1)! \\times 2\\)`;
             result.forEach((item, index) => {
                 const boxElement = createBox(item);
                 container.appendChild(boxElement);
-               // console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
+                // console.log(`Condition "${conditionData}" found in results. "${item}" with id "${index}"`);
             });
 
             displayResult(result.length);
@@ -652,26 +688,26 @@ calculationStep.innerHTML = `\\((${total}-1)! \\times 2\\)`;
     conditionInputBtn.addEventListener('click', () => {
         console.log(conditionData[0]);
         console.log(conditionInputNum.value);
-     if (result != undefined) {
+        if (result != undefined) {
 
-        container.innerHTML = '';
+            container.innerHTML = '';
 
-        result = result.filter(item => {
-            const matchCount = item.filter(element => element.includes(conditionData[0])).length;
-            return matchCount >= conditionInputNum.value;
-        });
+            result = result.filter(item => {
+                const matchCount = item.filter(element => element.includes(conditionData[0])).length;
+                return matchCount >= conditionInputNum.value;
+            });
 
-        result.forEach((item, index) => {
-            const boxElement = createBox(item);
-            container.appendChild(boxElement);
-            console.log(`Condition "${conditionData[0]}" with min count "${conditionInputNum.value}" found in results. "${item}" with id "${index}"`);
-        });
+            result.forEach((item, index) => {
+                const boxElement = createBox(item);
+                container.appendChild(boxElement);
+                console.log(`Condition "${conditionData[0]}" with min count "${conditionInputNum.value}" found in results. "${item}" with id "${index}"`);
+            });
 
-        displayResult(result.length);
-    }
+            displayResult(result.length);
+        }
 
-    calculationStepFunction();
-});
+        calculationStepFunction();
+    });
 
     // Toggle between combination and permutation
     switchToggle.addEventListener('click', () => {
