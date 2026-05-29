@@ -1,5 +1,5 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
-import generateMotionMachine from './motionMachine.js';
+import {generateMotionMachine, transition} from './motionMachine.js';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
@@ -54,8 +54,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const lineBox = document.querySelector('#line');
     const circleBox = document.querySelector('#circle');
 
+    const rightSideBar = document.querySelector('.right-sidebar');
+
     const individualSwitch = document.querySelector('#ind-switch');
 
+    const animateKey = document.querySelector('.animate-key');
     let isPermutation = true;
 
     let startWithCondition;
@@ -72,7 +75,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const counter = document.createElement('h3');
 
     let allSeatingArrangements;
+    let currentMotionMachine;
+    const actorStates = {};
 
+    let animated = false;
+animateKey.addEventListener('click', () => {
+    animated = !animated;
+    animateKey.classList.toggle('animated', animated);
+    animateKey.classList.toggle('unanimate', !animated);
+});
     const addDocFunction = async (input) => {
         try {
             const docRef = await addDoc(collection(db, "questions"), {
@@ -124,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         const motionMachine = generateMotionMachine(table, 250, parseInt(boyInput.value) + parseInt(blueInput.value));
+        currentMotionMachine = motionMachine;
 
         const originpoint = document.createElement('div');
         originpoint.style.left = `${motionMachine.tableOriginX}px`;
@@ -182,6 +194,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }))
         );
 
+        allSeatingArrangements.forEach(({ actor, position }) => {
+            actorStates[actor] = { ...position };
+            const el = actorElements[actor];
+            if (el) {
+                el.style.position = 'absolute';
+                el.style.left = `${position.x}px`;
+                el.style.top = `${position.y}px`;
+            }
+        });
+
         addDocFunction(allSeatingArrangements);
         console.log(allSeatingArrangements);
         displayResult(allSeatingArrangements.length);
@@ -207,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     duplicateArray.push({ value, count });
                 }
             }
-            return duplicateArray.map(({ count }) => `${count}!`).join('');
+            return duplicateArray;
 
         }
     }
@@ -290,7 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             addDocFunction(result);
-
         }
         else if (circleBox.checked == true) {
 
@@ -302,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
 
-        dupArray = duplicateCheck(dataInput.value);
+        dupArray = duplicateCheck(dataInput.value).map(({ count }) => `${count}!`).join('');
 
     });
 
@@ -545,34 +566,59 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const animateActor = (allSeatingArrangements) => {
-        if (allSeatingArrangements != undefined) {
+        if (allSeatingArrangements != undefined && currentMotionMachine) {
             let currentIndex = 0;
+
+            const animateActorTo = (el, actor, targetPosition, duration = 800) => {
+                const original = actorStates[actor] || targetPosition;
+                const startTime = performance.now();
+
+                const step = (timestamp) => {
+                    const elapsed = timestamp - startTime;
+                    const t = Math.min(elapsed / duration, 1);
+                    const next = transition(original, targetPosition, t);
+
+                    el.style.left = `${next.x}px`;
+                    el.style.top = `${next.y}px`;
+                    actorStates[actor] = { angle: next.angle, x: next.x, y: next.y };
+
+                    if (t < 1) {
+                        requestAnimationFrame(step);
+                    }
+                };
+
+                requestAnimationFrame(step);
+            };
 
             const showArrangement = (seating) => {
                 seating.forEach(({ actor, position }) => {
                     counter.textContent = `Arrangement ${currentIndex + 1} / ${allSeatingArrangements.length}`;
                     const el = actorElements[actor];
+                    if (!el) return;
 
                     el.style.position = 'absolute';
                     el.style.marginLeft = '0%';
                     el.style.marginTop = '0%';
-                    // Enable smooth walking transition for position + fade in
-                    el.style.transition = 'left 1s ease-in-out, top 1s ease-in-out, opacity 0.5s ease';
-                    el.style.left = `${position.x}px`;
-                    el.style.top = `${position.y}px`;
                     el.style.opacity = '1';
-                });
 
+                    if (!actorStates[actor]) {
+                        actorStates[actor] = { ...position };
+                        el.style.left = `${position.x}px`;
+                        el.style.top = `${position.y}px`;
+                    } else {
+                        animateActorTo(el, actor, position);
+                    }
+                });
             };
+
+            // Show the first arrangement immediately without arc animation from undefined state.
+            showArrangement(allSeatingArrangements[0]);
+            currentIndex = 1;
 
             const interval = setInterval(() => {
                 showArrangement(allSeatingArrangements[currentIndex]);
                 currentIndex = (currentIndex + 1) % allSeatingArrangements.length;
             }, 2500);
-
-            // Show the first arrangement immediately
-            showArrangement(allSeatingArrangements[0]);
-            currentIndex = 1;
         }
         else {
             SlideShow();
@@ -641,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     )
                 );
                 allSeatingArrangements = filtered;
-                displayResult(allSeatingArrangements.length);      
+                displayResult(allSeatingArrangements.length);
                 updateQuestion(questionId, filtered);
             } else {
                 const filtered = allSeatingArrangements.filter(arrangement =>
@@ -675,8 +721,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 console.log(allSeatingArrangements);
                 displayResult(allSeatingArrangements.length);
-                
-            updateQuestion(questionId, allSeatingArrangements);
+
+                updateQuestion(questionId, allSeatingArrangements);
 
             }
         }
@@ -684,6 +730,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result != undefined && lineBox.checked == true) {
             container.innerHTML = '';
 
+            const conditionBoxlets = document.querySelectorAll('.condition-boxlet');
+            conditionBoxlets.forEach(el => el.classList.remove('selected'));
             console.log(conditionData);
             result = result.filter(item =>
                 conditionData.some(condition => item.join('').includes(condition))
@@ -710,6 +758,10 @@ document.addEventListener('DOMContentLoaded', () => {
         startWithCondition = selectedConditions.size;
         if (result != undefined) {
 
+
+            const conditionBoxlets = document.querySelectorAll('.condition-boxlet');
+            conditionBoxlets.forEach(el => el.classList.remove('selected'));
+
             container.innerHTML = '';
             let conditions = [...conditionData];
             conditions = conditions[0].split('');
@@ -735,6 +787,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(selectedConditions);
         if (result != undefined) {
 
+
+            const conditionBoxlets = document.querySelectorAll('.condition-boxlet');
+            conditionBoxlets.forEach(el => el.classList.remove('selected'));
+
             container.innerHTML = '';
             let conditions = [...conditionData];
             conditions = conditions[0].split('');
@@ -757,19 +813,64 @@ document.addEventListener('DOMContentLoaded', () => {
     conditionInputBtn.addEventListener('click', () => {
         console.log(conditionData[0]);
         console.log(conditionInputNum.value);
-        if (result != undefined) {
+        if (result != undefined && !isPermutation) {
+            const conditionBoxlets = document.querySelectorAll('.condition-boxlet');
+            conditionBoxlets.forEach(el => el.classList.remove('selected'));
 
+
+            const tableData = duplicateCheck(dataInput.value);
             container.innerHTML = '';
 
+            const table = document.createElement('table');
+
+            rightSideBar.append(table);
+
+
+            const row = document.createElement('tr');
+            table.append(row);
+
+            const title1 = document.createElement('td');
+            title1.textContent = tableData[0].value;
+            row.append(title1);
+
+            const title2 = document.createElement('td');
+            title2.textContent = tableData[1].value;
+            row.append(title2);
+
+            console.log(conditionData[0]);
+            console.log(tableData);
+const matches = Object.entries(tableData)
+    .filter(([key, value]) => JSON.stringify(value).includes(conditionData))
+    .map(([key]) => key);
+    console.log(matches);
+    console.log(tableData[matches[0]]);
+    const remaining = Object.keys(tableData).filter(key => !matches.includes(key));
+    const index = conditionInputNum.value;
+            for (let i = index; i < tableData[matches[0]].count + 1; i++) {
+                console.log(i, index);
+                const row = document.createElement('tr');
+                table.append(row);
+
+                const td1 = document.createElement('td');
+                td1.textContent = `\\( _${tableData[matches[0]].count}C_${i}\\)`;
+                row.append(td1);
+
+                const td2 = document.createElement('td');
+
+                td2.textContent =`\\( _${tableData[remaining[0]].count}C_${sizeInput.value-i}\\)`;;
+                row.append(td2);
+            }     
+            MathJax.typesetPromise([table]);
             result = result.filter(item => {
                 const matchCount = item.filter(element => element.includes(conditionData[0])).length;
                 return matchCount >= conditionInputNum.value;
             });
 
+
             result.forEach((item, index) => {
                 const boxElement = createBox(item);
                 container.appendChild(boxElement);
-                console.log(`Condition "${conditionData[0]}" with min count "${conditionInputNum.value}" found in results. "${item}" with id "${index}"`);
+                //console.log(`Condition "${conditionData[0]}" with min count "${conditionInputNum.value}" found in results. "${item}" with id "${index}"`);
             });
 
             displayResult(result.length);
