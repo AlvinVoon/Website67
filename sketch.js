@@ -74,7 +74,7 @@ function drawVector(v, colour) {
 }
 
 function preload() {
-  font = loadFont('/assets/Typographica-Blp5.ttf');
+  font = loadFont('assets/Typographica-Blp5.ttf');
 }
 function setup() {
   createCanvas(800, 600, WEBGL);
