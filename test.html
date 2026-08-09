@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sketch</title>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <script src="libraries/p5.min.js"></script>
+  <script src="libraries/p5.sound.min.js"></script>
+</head>
+
+<body>
+  <label for="cameraX">Camera X</label>
+  <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
+  <label for="cameraY">Camera Y</label>
+  <input type="range" id="cameraY" name="cameraY" min="-500" max="500" value="0" step="1">
+
+  <label for="cameraZ">Camera Z</label>
+  <input type="range" id="cameraZ" name="cameraZ" min="-1000" max="1000" value="800" step="1">
+  <button id="keyframe" type="button">Key Frame</button>
+  <button id="play" type="button">Play</button>
+  <div class="list"></div>
+  <script src="sketch.js"></script>
+</body>
+
+</html>
