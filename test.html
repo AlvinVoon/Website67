@@ -14,7 +14,9 @@
 </head>
 
 <body>
-  <label for="cameraX">Camera X</label>
+
+  <div id="control-panel" class="list">
+      <label for="cameraX">Camera X</label>
   <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
   <label for="cameraY">Camera Y</label>
   <input type="range" id="cameraY" name="cameraY" min="-500" max="500" value="0" step="1">
@@ -23,7 +25,7 @@
   <input type="range" id="cameraZ" name="cameraZ" min="-1000" max="1000" value="800" step="1">
   <button id="keyframe" type="button">Key Frame</button>
   <button id="play" type="button">Play</button>
-  <div class="list"></div>
+  </div>
   <script src="sketch.js"></script>
 </body>
 

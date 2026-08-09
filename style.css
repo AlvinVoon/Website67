@@ -3,6 +3,16 @@ html, body {
   padding: 0;
 }
 
+body{
+  display: flex;
+  flex-direction: row-reverse;
+}
 canvas {
   display: block;
+}
+
+#control-panel{
+  background-color: black;
+  color:white; 
+  max-width: 80%;
 }

@@ -19,7 +19,7 @@ const DisplayList = document.querySelector('.list');
 
 function createStuff(stuff) {
   const createElement = document.createElement('h1');
-  createElement.textContent = stuff;
+  createElement.textContent = stuff.length;
   DisplayList.append(createElement);
 
 }
@@ -54,8 +54,8 @@ function angleDrawer(angleDeg, length = 200) {
   return createVector(x, y);
 }
 
-function drawVector(v, colour) {
-
+function drawVector(v, colour, offsetX, offsetY, textt ) {
+    addText(textt, 'deeppink', v.x+offsetX, v.y+offsetY)
     stroke(colour);
     strokeWeight(3);
 
@@ -77,10 +77,10 @@ function preload() {
   font = loadFont('assets/Typographica-Blp5.ttf');
 }
 function setup() {
-  createCanvas(800, 600, WEBGL);
+  createCanvas(windowWidth-50, windowHeight, WEBGL);
   //canvas width 1536, 775
   A = angleDrawer(0, 200);
-  B = angleDrawer(90, 200);
+  B = angleDrawer(120, 200);
 
   mainCam = createCamera();
   mainCam.setPosition(0, 0, 800);
@@ -103,20 +103,21 @@ function draw() {
 
   let R = p5.Vector.add(A, B);
 
-  drawVector(A, color(255, 0, 0))
+  drawVector(A, color(255, 0, 0), 50, 50, '0deg')
 
-  drawVector(B, color(0,255,0));
+  drawVector(B, color(0,255,0), 20, 0, '120');
 
   drawVector(R, color(0, 0, 255))
-  
-  
+
   getCameraOrientation();
-  fill('deeppink');
-  textFont(font);
-  textSize(30);
-  text('test', 0, 50);
 }
 
+function addText(textGG, color, offsetX, offsetY, fontSize = 30){
+  fill(color);
+  textFont(font);
+  textSize(fontSize);
+  text(textGG, offsetX, offsetY);
+}
 // ---- Camera animation ----
 
 function animateCameraTo(newPos, newTarget, duration = 1000) {
