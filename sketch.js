@@ -53,34 +53,55 @@ function angleDrawer(angleDeg, length = 200) {
   let y = -Math.cos(rad) * length;  // -cos instead of sin, negative = up on screen
   return createVector(x, y);
 }
+function nearestAxis(bearing) {
+  // Snaps to the axis at the START of the bearing's quadrant
+  // 0-89 -> North(0), 90-179 -> East(90), 180-269 -> South(180), 270-359 -> West(270)
+  return Math.floor(((bearing % 360) + 360) % 360 / 90) * 90;
+}
 
-function drawVector(v, colour, offsetX, offsetY, textt ) {
-    addText(textt, 'deeppink', v.x+offsetX, v.y+offsetY)
-    stroke(colour);
-    strokeWeight(3);
 
-    line(0,0,v.x,v.y);
+function drawVector(v, colour, offsetX, offsetY, textt, angle) {
+  addText(textt, 'deeppink', v.x + offsetX, v.y + offsetY)
+  stroke(colour);
+  strokeWeight(3);
 
-    // Arrowhead
-    push();
+  line(0, 0, v.x, v.y);
 
-    translate(v.x,v.y);
-    rotate(v.heading());
+  // Arrowhead
+  push();
 
-    line(0,0,-12,-5);
-    line(0,0,-12,5);
+  translate(v.x, v.y);
+  rotate(v.heading());
 
-    pop();
+  line(0, 0, -12, -5);
+  line(0, 0, -12, 5);
+
+  pop();
+
+  push();
+  noFill();
+  stroke(colour);
+  strokeWeight(1);
+  let axis = nearestAxis(angle);
+
+  let a1 = radians(axis - 90);   // axis converted to p5 angle space
+  let a2 = radians(angle - 90);  // actual vector angle converted to p5 angle space
+
+  let start = Math.min(a1, a2);
+  let stop = Math.max(a1, a2);
+
+  arc(0, 0, 20, 20, start, stop);
+  pop();
 }
 
 function preload() {
   font = loadFont('assets/Typographica-Blp5.ttf');
 }
 function setup() {
-  createCanvas(windowWidth-50, windowHeight, WEBGL);
+  createCanvas(windowWidth - 50, windowHeight, WEBGL);
   //canvas width 1536, 775
-  A = angleDrawer(0, 200);
-  B = angleDrawer(120, 200);
+  A = angleDrawer(20, 200);
+  B = angleDrawer(240, 200);
 
   mainCam = createCamera();
   mainCam.setPosition(0, 0, 800);
@@ -103,16 +124,16 @@ function draw() {
 
   let R = p5.Vector.add(A, B);
 
-  drawVector(A, color(255, 0, 0), 50, 50, '0deg')
+  drawVector(A, color(255, 0, 0), 50, 50, '20deg', 20)
 
-  drawVector(B, color(0,255,0), 20, 0, '120');
+  drawVector(B, color(0, 255, 0), 20, 0, '120', 240);
 
   drawVector(R, color(0, 0, 255))
 
   getCameraOrientation();
 }
 
-function addText(textGG, color, offsetX, offsetY, fontSize = 30){
+function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
   fill(color);
   textFont(font);
   textSize(fontSize);
@@ -177,8 +198,9 @@ function drawGround() {
 
   for (let i = -250; i <= 250; i += 25) {
 
-    line(i, 0, -250, i, 0, 250);
-    line(-250, 0, i, 250, 0, i);
+    line(-250, 0, 0, 250, 0, 0);
+    //    line(i, 0, -250, i, 0, 250);
+    //  line(-250, 0, i, 250, 0, i);
 
   }
   pop();
@@ -187,8 +209,9 @@ function drawGround() {
 
   for (let i = -250; i <= 250; i += 25) {
 
-    line(i, -250, 0, i, 250, 0);   // vertical lines
-    line(-250, i, 0, 250, i, 0);   // horizontal lines
+    line(0, 250, 0, 0, -250, 0);
+    //line(i, -250, 0, i, 250, 0);   // vertical lines
+    // line(-250, i, 0, 250, i, 0);   // horizontal lines
 
   }
 
