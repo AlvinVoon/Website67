@@ -25,7 +25,19 @@
   <input type="range" id="cameraZ" name="cameraZ" min="-1000" max="1000" value="800" step="1">
   <button id="keyframe" type="button">Key Frame</button>
   <button id="play" type="button">Play</button>
-  </div>
+
+<label for="vector1heading">Vector 1 (heading):</label>
+<input type="number" id="vector1heading" name="Vector1heading" min="-100" max="100" step="1" value="1">
+<label for="vector1length">Vector 1 (length):</label>
+<input type="number" id="vector1length" name="Vector1length" min="-100" max="100" step="1" value="200">
+<label for="vector2heading">Vector 2 (heading):</label>
+<input type="number" id="vector2heading" name="Vector2heading" min="-100" max="100" step="1" value="1">
+<label for="vector2length">Vector 2 (length):</label>
+<input type="number" id="vector2length" name="Vector2length" min="-100" max="100" step="1" value="200">
+ <button id="addOperater">Add the two vectors</button>
+ <button id="dotOperater">Dot product of the two vectors</button>
+</div>
+
   <script src="sketch.js"></script>
 </body>
 

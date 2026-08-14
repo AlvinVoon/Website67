@@ -2,7 +2,7 @@ let A, B;
 let mainCam;
 let camAnim = null; // holds active animation state, or null when idle
 let font;
-let targetCoordinates = [0, 0, 0];
+let targetCoordinates = [0, 0, 800];
 
 let lastYaw = null;
 let lastPitch = null;
@@ -15,7 +15,18 @@ const cameraZ = document.querySelector('#cameraZ');
 const keyFrameBtn = document.querySelector('#keyframe');
 const playBtn = document.querySelector('#play');
 
+const addBtn = document.querySelector('#addOperater');
+const dotproductBtn = document.querySelector('#dotOperater');
+
+const vector1Heading = document.querySelector('#vector1heading');
+const vector1Length = document.querySelector('#vector1length');
+
+const vector2Heading = document.querySelector('#vector2heading');
+const vector2Length = document.querySelector('#vector2length');
+
 const DisplayList = document.querySelector('.list');
+
+let questionIndex;
 
 function createStuff(stuff) {
   const createElement = document.createElement('h1');
@@ -60,37 +71,93 @@ function nearestAxis(bearing) {
 }
 
 
-function drawVector(v, colour, offsetX, offsetY, textt, angle) {
-  addText(textt, 'deeppink', v.x + offsetX, v.y + offsetY)
-  stroke(colour);
-  strokeWeight(3);
+// Store per-vector animation state (position along the line, 0 to 1)
+let vectorDots = {};
 
-  line(0, 0, v.x, v.y);
+function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, velocity = 1, dotId = textt, baseX = 0, baseY = 0) {
 
-  // Arrowhead
+  // --- Manim-style label: slightly larger, no stroke, soft weight ---
   push();
-
-  translate(v.x, v.y);
-  rotate(v.heading());
-
-  line(0, 0, -12, -5);
-  line(0, 0, -12, 5);
-
+  noStroke();
+  fill('#FFFF00'); // Manim yellow reads better than deeppink on dark bg
+  textSize(16);
+  textFont('Georgia'); // serif reads closer to LaTeX than default sans
+  text(textt, baseX + v.x + offsetX, baseY + v.y + offsetY);
   pop();
 
+  // --- Glow pass behind the main line (Manim's soft-highlight look) ---
   push();
-  noFill();
+  strokeCap(ROUND);
+  for (let i = 3; i > 0; i--) {
+    stroke(red(color(colour)), green(color(colour)), blue(color(colour)), 25);
+    strokeWeight(i * 5);
+    line(baseX, baseY, baseX + v.x, baseY + v.y);
+  }
+  pop();
+
+  // --- Crisp main line ---
+  push();
+  strokeCap(ROUND);
   stroke(colour);
-  strokeWeight(1);
+  strokeWeight(2.5);
+  smooth();
+  line(baseX, baseY, baseX + v.x, baseY + v.y);
+  pop();
+
+  // --- Filled triangular arrowhead (not open lines) ---
+  push();
+  translate(baseX + v.x, baseY + v.y);
+  rotate(v.heading());
+  noStroke();
+  fill(colour);
+  triangle(0, 0, -12, -5, -12, 5);
+  pop();
+
+  // --- Angle arc (thin, pastel, slightly glowing) ---
+  push();
+  translate(baseX, baseY);
+  noFill();
+  smooth();
+  strokeCap(ROUND);
   let axis = nearestAxis(angle);
-
-  let a1 = radians(axis - 90);   // axis converted to p5 angle space
-  let a2 = radians(angle - 90);  // actual vector angle converted to p5 angle space
-
+  let a1 = radians(axis - 90);
+  let a2 = radians(angle - 90);
   let start = Math.min(a1, a2);
   let stop = Math.max(a1, a2);
 
+  stroke(red(color(colour)), green(color(colour)), blue(color(colour)), 60);
+  strokeWeight(3);
+  arc(0, 0, 22, 22, start, stop);
+
+  stroke(colour);
+  strokeWeight(1);
   arc(0, 0, 20, 20, start, stop);
+  pop();
+
+  // --- Animated dot moving along the vector's heading ---
+  if (!vectorDots[dotId]) {
+    vectorDots[dotId] = 0;
+  }
+
+  let heading = v.heading();
+  let length = v.mag();
+
+  vectorDots[dotId] += velocity;
+  if (vectorDots[dotId] > length) {
+    vectorDots[dotId] = 0;
+  }
+
+  let dist = vectorDots[dotId];
+  let dotX = baseX + cos(heading) * dist;
+  let dotY = baseY + sin(heading) * dist;
+
+  // glowing traveling dot (Manim loves this pulsing-particle effect)
+  push();
+  noStroke();
+  fill(red(color(colour)), green(color(colour)), blue(color(colour)), 60);
+  circle(dotX, dotY, 16);
+  fill(colour);
+  circle(dotX, dotY, 7);
   pop();
 }
 
@@ -100,14 +167,42 @@ function preload() {
 function setup() {
   createCanvas(windowWidth - 50, windowHeight, WEBGL);
   //canvas width 1536, 775
-  A = angleDrawer(20, 200);
-  B = angleDrawer(240, 200);
+  A = angleDrawer(0, 200);
+  B = angleDrawer(90, 200);
 
   mainCam = createCamera();
   mainCam.setPosition(0, 0, 800);
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
 }
+
+vector1Heading.addEventListener('change', function () {
+  A = angleDrawer(vector1Heading.value, vector1Length.value);
+})
+
+vector1Length.addEventListener('change', function () {
+  A = angleDrawer(vector1Heading.value, vector1Length.value);
+})
+
+vector2Heading.addEventListener('change', function () {
+  B = angleDrawer(vector2Heading.value, vector2Length.value);
+})
+
+vector2Length.addEventListener('change', function () {
+  B = angleDrawer(vector2Heading.value, vector2Length.value);
+})
+let R;
+
+addBtn.addEventListener('click', function () {
+  R = p5.Vector.add(A, B);
+})
+
+let projVector;
+
+dotproductBtn.addEventListener('click', function () {
+  let dot = p5.Vector.dot(A, B);
+  projVector = B.copy().mult(dot / B.magSq());
+})
 
 function draw() {
   background(30);
@@ -120,18 +215,37 @@ function draw() {
     updateCameraAnimation();
   }
 
-  drawGround();
+  drawGround(0, 0, 0, 30);
+  // drawGround(50, 200, 0, 30);
 
-  let R = p5.Vector.add(A, B);
+  // let R = p5.Vector.add(A, B);
 
-  drawVector(A, color(255, 0, 0), 50, 50, '20deg', 20)
+  //  drawVector(A, color(255, 0, 0), 50, 50, '20deg', 20);
 
-  drawVector(B, color(0, 255, 0), 20, 0, '120', 240);
+  // Keep the original B at the origin
+  // drawVector(B, color(0, 255, 0, 150), 20, 0, 'B', 240, 1, 'B-original');
 
-  drawVector(R, color(0, 0, 255))
+  // Draw a connected copy of B starting at the tip of A
+  // drawVector(B, color(0, 255, 0), 20, 0, 'B-connected', 240, 1, 'B-connected', A.x, A.y);
 
+  //  drawVector(R, color(0, 0, 255));
+
+  if (A != null) {
+    drawVector(A, color(255, 0, 0), 50, 50, '20deg', 20);
+  }
+  if (B != null) {
+    drawVector(B, color(255, 0, 0), 50, 50, '20deg', 20);
+  }
+  if (R != null) {
+    drawVector(R, color(255, 0, 0), 50, 50, '20deg', 20);
+  }
+    if (projVector != null) {
+    drawVector(projVector, color(0, 255, 0), 50, 50, '20deg', 20);
+  }
   getCameraOrientation();
 }
+
+
 
 function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
   fill(color);
@@ -192,28 +306,33 @@ playBtn.addEventListener('click', function () {
   }
 });
 
-function drawGround() {
+function drawGround(x, y, z, length) {
   push();
   stroke(50);
 
-  for (let i = -250; i <= 250; i += 25) {
+  // for (let i = -250; i <= 250; i += 25) {
 
-    line(-250, 0, 0, 250, 0, 0);
-    //    line(i, 0, -250, i, 0, 250);
-    //  line(-250, 0, i, 250, 0, i);
+  //-250, 0, 0, 250,0 ,0;
+  line(x + length, -y, z, x - length, -y, z);
+  //    line(i, 0, -250, i, 0, 250);
+  //  line(-250, 0, i, 250, 0, i);
 
-  }
+  // }
   pop();
   // Grid lines
   stroke(50);
 
-  for (let i = -250; i <= 250; i += 25) {
+  // for (let i = -250; i <= 250; i += 25) {
+  //0, 250, 0, 0, -250, 0
 
-    line(0, 250, 0, 0, -250, 0);
-    //line(i, -250, 0, i, 250, 0);   // vertical lines
-    // line(-250, i, 0, 250, i, 0);   // horizontal lines
 
-  }
+  //make function for perpendicular 
+
+  line(x, -(y + length), z, x, -(y - length), z);
+  //line(i, -250, 0, i, 250, 0);   // vertical lines
+  // line(-250, i, 0, 250, i, 0);   // horizontal lines
+
+  // }
 
 }
 
