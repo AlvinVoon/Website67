@@ -14,29 +14,42 @@
 </head>
 
 <body>
+  <h4 class="version">V1.1</h4>
+  <div class="questionText" contenteditable="true">Hello world</div>
 
+  <div class="previousBtn"></div>
+  <div class="forwardBtn"></div>
   <div id="control-panel" class="list">
-      <label for="cameraX">Camera X</label>
-  <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
-  <label for="cameraY">Camera Y</label>
-  <input type="range" id="cameraY" name="cameraY" min="-500" max="500" value="0" step="1">
+    <label for="cameraX">Camera X</label>
+    <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
+    <label for="cameraY">Camera Y</label>
+    <input type="range" id="cameraY" name="cameraY" min="-500" max="500" value="0" step="1">
 
-  <label for="cameraZ">Camera Z</label>
-  <input type="range" id="cameraZ" name="cameraZ" min="-1000" max="1000" value="800" step="1">
-  <button id="keyframe" type="button">Key Frame</button>
-  <button id="play" type="button">Play</button>
+    <label for="cameraZ">Camera Z</label>
+    <input type="range" id="cameraZ" name="cameraZ" min="-1000" max="1000" value="800" step="1">
+    <button id="keyframe" type="button">Key Frame</button>
+    <button id="play" type="button">Play</button>
+    <button id="save" type="button">Save</button>
 
-<label for="vector1heading">Vector 1 (heading):</label>
-<input type="number" id="vector1heading" name="Vector1heading" min="-100" max="100" step="1" value="1">
-<label for="vector1length">Vector 1 (length):</label>
-<input type="number" id="vector1length" name="Vector1length" min="-100" max="100" step="1" value="200">
-<label for="vector2heading">Vector 2 (heading):</label>
-<input type="number" id="vector2heading" name="Vector2heading" min="-100" max="100" step="1" value="1">
-<label for="vector2length">Vector 2 (length):</label>
-<input type="number" id="vector2length" name="Vector2length" min="-100" max="100" step="1" value="200">
- <button id="addOperater">Add the two vectors</button>
- <button id="dotOperater">Dot product of the two vectors</button>
-</div>
+    <label for="vector1heading">Vector 1 (heading):</label>
+    <input type="number" id="vector1heading" name="Vector1heading" min="-100" max="100" step="1" value="1">
+    <label for="vector1length">Vector 1 (length):</label>
+    <input type="number" id="vector1length" name="Vector1length" min="-100" max="100" step="1" value="200">
+    <label for="vector2heading">Vector 2 (heading):</label>
+    <input type="number" id="vector2heading" name="Vector2heading" min="-100" max="100" step="1" value="1">
+    <label for="vector2length">Vector 2 (length):</label>
+    <input type="number" id="vector2length" name="Vector2length" min="-100" max="100" step="1" value="200">
+    <div>
+      <label for="observerA">A as Observer</label>
+      <input type="checkbox" id="observerA" name="observerA" value="observerA">
+    </div>
+    <div>
+      <label for="observerB">B as Observer</label>
+      <input type="checkbox" id="observerB" name="observerB" value="observerB">
+    </div>
+    <button id="addOperater">Add the two vectors</button>
+    <button id="dotOperater">Dot product of the two vectors</button>
+  </div>
 
   <script src="sketch.js"></script>
 </body>
