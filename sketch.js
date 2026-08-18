@@ -22,15 +22,21 @@ const cameraZ = document.querySelector('#cameraZ');
 const keyFrameBtn = document.querySelector('#keyframe');
 const playBtn = document.querySelector('#play');
 const saveBtn = document.querySelector('#save');
+const addSlideBtn = document.querySelector('#addSlide');
+
+const documentBody = document.querySelector('body');
 
 const addBtn = document.querySelector('#addOperater');
 const dotproductBtn = document.querySelector('#dotOperater');
+const crossProductBtn = document.querySelector('#crossOperater');
 
 const vector1Heading = document.querySelector('#vector1heading');
 const vector1Length = document.querySelector('#vector1length');
+const vector1Z = document.querySelector('#vector1z');
 
 const vector2Heading = document.querySelector('#vector2heading');
 const vector2Length = document.querySelector('#vector2length');
+const vector2Z = document.querySelector('#vector2z');
 
 const DisplayList = document.querySelector('.list');
 
@@ -41,6 +47,13 @@ const observerA = document.querySelector('#observerA');
 const observerB = document.querySelector('#observerB');
 
 const questionTextbox = document.querySelector('.questionText');
+
+addSlideBtn.addEventListener('click', function(){
+  const slide = document.createElement('div');
+  slide.classList.add('blank-slide');
+  documentBody.append(slide);
+
+})
 
 observerA.addEventListener('change', (event) => {
   if (event.target.checked) {
@@ -75,8 +88,8 @@ previousBtn.addEventListener('click', function () {
     index--;
     console.log(saved);
     console.log(saved[index]);
-    B = angleDrawer(saved[index][0][0], saved[index][0][1]);
-    A = angleDrawer(saved[index][1][0], saved[index][1][1]);
+    B = angleDrawer(saved[index][0][0], saved[index][0][1], saved[index][0][2] ?? 0);
+    A = angleDrawer(saved[index][1][0], saved[index][1][1], saved[index][1][2] ?? 0);
 
     if (saved[index][2] != null){
     questionTextbox.innerText = saved[index][2];
@@ -101,8 +114,8 @@ forwardBtn.addEventListener('click', function () {
   console.log(index);
   if (index < saved.length - 1) {
     index++;
-    B = angleDrawer(saved[index][0][0], saved[index][0][1]);
-    A = angleDrawer(saved[index][1][0], saved[index][1][1]);
+    B = angleDrawer(saved[index][0][0], saved[index][0][1], saved[index][0][2] ?? 0);
+    A = angleDrawer(saved[index][1][0], saved[index][1][1], saved[index][1][2] ?? 0);
 
     if (saved[index][2] != null){
     questionTextbox.innerText = saved[index][2];
@@ -115,20 +128,23 @@ forwardBtn.addEventListener('click', function () {
   }
 })
 
-saved = JSON.parse(localStorage.getItem('saved'));
+saved = JSON.parse(localStorage.getItem('saved')) ?? [];
 
 saveBtn.addEventListener('click', function () {
   index++;
-  saved.push([[vector1Heading.value, vector1Length.value], [vector2Heading.value, vector2Length.value], questionTextbox.innerText]);
+  saved.push([
+    [Number(vector1Heading.value), Number(vector1Length.value), Number(vector1Z.value)],
+    [Number(vector2Heading.value), Number(vector2Length.value), Number(vector2Z.value)],
+    questionTextbox.innerText
+  ]);
 
-  try{
-  localStorage.setItem('saved', JSON.stringify(saved));
-  const savedTools = JSON.parse(localStorage.getItem('saved'));
-console.log(savedTools);
-  }catch(error){
+  try {
+    localStorage.setItem('saved', JSON.stringify(saved));
+    const savedTools = JSON.parse(localStorage.getItem('saved'));
+    console.log(savedTools);
+  } catch (error) {
     console.error(error);
   }
-  //console.log(saved);
 })
 
 function createStuff(stuff) {
@@ -161,11 +177,11 @@ cameraZ.addEventListener('input', function () {
   //console.log(targetCoordinates);
 });
 
-function angleDrawer(angleDeg, length = 200) {
+function angleDrawer(angleDeg, length = 200, zIndex = 0) {
   let rad = radians(angleDeg);
-  let x = Math.sin(rad) * length;   // sin instead of cos
-  let y = -Math.cos(rad) * length;  // -cos instead of sin, negative = up on screen
-  return createVector(x, y);
+  let x = Math.sin(rad) * length;
+  let y = -Math.cos(rad) * length;
+  return createVector(x, y, zIndex);
 }
 function nearestAxis(bearing) {
   // Snaps to the axis at the START of the bearing's quadrant
@@ -177,7 +193,7 @@ function nearestAxis(bearing) {
 // Store per-vector animation state (position along the line, 0 to 1)
 let vectorDots = {};
 
-function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, velocity = 1, dotId = textt, baseX = 0, baseY = 0) {
+function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, velocity = 1, dotId = textt, baseX = 0, baseY = 0, baseZ = 0) {
 
   // --- Manim-style label: slightly larger, no stroke, soft weight ---
   push();
@@ -194,7 +210,7 @@ function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, 
   //  for (let i = 3; i > 0; i--) {
   //    stroke(red(color(colour)), green(color(colour)), blue(color(colour)), 25);
   //   strokeWeight(i * 5);
-  //   line(baseX, baseY, baseX + v.x, baseY + v.y);
+  //   line(baseX, baseY, baseZ, baseX + v.x, baseY + v.y, baseZ + v.z);
   // }
   // pop();
 
@@ -204,7 +220,7 @@ function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, 
   stroke(colour);
   strokeWeight(2.5);
   smooth();
-  line(baseX, baseY, baseX + v.x, baseY + v.y);
+  line(baseX, baseY, baseZ, baseX + v.x, baseY + v.y, baseZ + v.z);
   pop();
 
   // --- Filled triangular arrowhead (not open lines) ---
@@ -270,11 +286,11 @@ function preload() {
 function setup() {
   createCanvas(windowWidth - 145, windowHeight, WEBGL);
   //canvas width 1536, 775
-  A = angleDrawer(0, 200);
-  B = angleDrawer(90, 200);
+  A = angleDrawer(0, 200, Number(vector1Z.value));
+  B = angleDrawer(90, 200, Number(vector2Z.value));
 
   mainCam = createCamera();
-  mainCam.setPosition(0, 0, 800);
+  mainCam.setPosition(0, 0, 500);
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
 }
@@ -293,21 +309,29 @@ addBtn.addEventListener('click', function () {
   console.log(degrees);
 })
 
-vector1Heading.addEventListener('change', function () {
-  A = angleDrawer(vector1Heading.value, vector1Length.value);
+vector1Heading.addEventListener('input', function () {
+  A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
   console.log(A);
 })
 
-vector1Length.addEventListener('change', function () {
-  A = angleDrawer(vector1Heading.value, vector1Length.value);
+vector1Length.addEventListener('input', function () {
+  A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
 })
 
-vector2Heading.addEventListener('change', function () {
-  B = angleDrawer(vector2Heading.value, vector2Length.value);
+vector1Z.addEventListener('input', function () {
+  A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
 })
 
-vector2Length.addEventListener('change', function () {
-  B = angleDrawer(vector2Heading.value, vector2Length.value);
+vector2Heading.addEventListener('input', function () {
+  B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
+})
+
+vector2Length.addEventListener('input', function () {
+  B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
+})
+
+vector2Z.addEventListener('input', function () {
+  B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
 })
 
 let projVector;
@@ -315,6 +339,12 @@ let projVector;
 dotproductBtn.addEventListener('click', function () {
   let dot = p5.Vector.dot(A, B);
   projVector = B.copy().mult(dot / B.magSq());
+})
+
+let crossVector;
+crossProductBtn.addEventListener('click', function () {
+  crossVector = p5.Vector.cross(A.copy(), B.copy());
+  console.log(crossVector);
 })
 
 function connectVector() {
@@ -359,6 +389,9 @@ function draw() {
   }
   if (projVector != null) {
     drawVector(projVector, color(0, 255, 0), 50, 50, '20deg', 20);
+  }  
+  if (crossVector != null) {
+    drawVector(crossVector, color(255, 255, 0), 50, 50, 'cross', 20, 1, 'cross', 0, 0, 0);
   }
   getCameraOrientation();
 }
@@ -425,32 +458,32 @@ playBtn.addEventListener('click', function () {
 });
 
 function drawGround(x, y, z, length) {
-  push();
-  stroke(50);
+ // push();
+ // stroke(50);
 
   // for (let i = -250; i <= 250; i += 25) {
 
   //-250, 0, 0, 250,0 ,0;
-  line(x + length, -y, z, x - length, -y, z);
-  //    line(i, 0, -250, i, 0, 250);
+ // line(x + length, -y, z, x - length, -y, z); //special line
+ //     line(i, 0, -250, i, 0, 250);
   //  line(-250, 0, i, 250, 0, i);
 
   // }
-  pop();
+ // pop();
   // Grid lines
-  stroke(50);
+  stroke(80);
 
-  // for (let i = -250; i <= 250; i += 25) {
+   for (let i = -500; i <= 500; i += 25) {
   //0, 250, 0, 0, -250, 0
 
 
   //make function for perpendicular 
 
-  line(x, -(y + length), z, x, -(y - length), z);
-  //line(i, -250, 0, i, 250, 0);   // vertical lines
-  // line(-250, i, 0, 250, i, 0);   // horizontal lines
+  //line(x, -(y + length), z, x, -(y - length), z); //special-line
+  line(i, -500, 0, i, 500, 0);   // vertical lines
+   line(-500, i, 0, 500, i, 0);   // horizontal lines
 
-  // }
+   }
 
 }
 

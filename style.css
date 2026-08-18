@@ -1,67 +1,172 @@
 html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
-body{
+body {
   display: flex;
   flex-direction: row-reverse;
+  overflow: hidden;
+  background: #07111d;
+  font-family: "Segoe UI", Tahoma, sans-serif;
 }
+
 canvas {
   display: block;
+  flex: 1;
+  height: 100%;
+  width: calc(100% - clamp(15rem, 22vw, 21rem));
 }
 
-#control-panel{
-  background-color: rgb(0, 0, 0);
-  color:white; 
-  width:100%;
+#control-panel {
+  background: linear-gradient(180deg, rgba(9, 14, 24, 0.96), rgba(15, 23, 42, 0.98));
+  color: #edf6ff;
+  width: clamp(16rem, 22vw, 20rem);
+  min-width: clamp(16rem, 22vw, 20rem);
   display: flex;
   flex-direction: column;
-  padding:20px;
-  gap:10px;
+  gap: 0.75rem;
+  padding: 1.125rem 1rem 1.25rem;
+  overflow-y: auto;
+  min-height: 0;
+  border-left: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: -0.75rem 0 1.75rem rgba(2, 6, 23, 0.34);
+  backdrop-filter: blur(12px);
 }
 
-.questionText{
+#control-panel label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(191, 219, 254, 0.9);
+  font-weight: 700;
+}
+
+#control-panel input[type="number"] {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fbff;
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#control-panel input[type="number"]:focus {
+  border-color: rgba(125, 211, 252, 0.95);
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.18);
+}
+
+#control-panel input[type="range"] {
+  width: 100%;
+  accent-color: #7dd3fc;
+  cursor: pointer;
+}
+
+#control-panel button {
+  border: none;
+  border-radius: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  background: linear-gradient(135deg, #7dd3fc, #bfdbfe);
+  color: #06131f;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  box-shadow: 0 0.5rem 1.125rem rgba(125, 211, 252, 0.2);
+}
+
+#control-panel button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.75rem 1.375rem rgba(125, 211, 252, 0.26);
+}
+
+#control-panel > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem;
+  padding: 0.25rem 0;
+}
+
+#control-panel > div label {
+  margin: 0;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.8125rem;
+  color: #dfeafe;
+}
+
+#control-panel input[type="checkbox"] {
+  accent-color: #60a5fa;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.questionText {
   position: absolute;
-  top:30px;
-  left:50px;
+  top: 1.875rem;
+  left: 3.125rem;
   color: black;
-  background-color:white;
+  background-color: white;
   height: fit-content;
-  width:300px;
-  border-radius: 25px;
-  padding:10px;
+  width: min(18.75rem, 32vw);
+  border-radius: 1.5625rem;
+  padding: 0.625rem;
   text-align: center;
-  
+  box-shadow: 0 0.875rem 1.625rem rgba(15, 23, 42, 0.22);
 }
 
-.previousBtn, .forwardBtn{
+.previousBtn, .forwardBtn {
   border-radius: 50%;
-  width:60px;
-  height:60px;
+  width: 3.75rem;
+  height: 3.75rem;
   background-color: white;
   position: absolute;
-  bottom:30px;
+  bottom: 1.875rem;
   opacity: 0.1;
 }
 
-.previousBtn{
-  left:50px;
+.previousBtn {
+  left: 3.125rem;
 }
 
-.forwardBtn{
-  right:250px;
+.forwardBtn {
+  right: clamp(15.5rem, 25vw, 27rem);
 }
 
-button{
-  border-radius:5px;
-  border: none;
-}
-
-.version{
+.version {
   color: rgba(255, 255, 255, 0.458);
   position: absolute;
-  right:250px;
+  right: 3.125rem;
+  z-index: 5;
   font-weight: bold;
-  margin-top:45px;
+  margin-top: 1.25rem;
+}
+
+.blank-slide {
+  width: 80%;
+  height: 85%;
+  background-color: white;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: slide-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
