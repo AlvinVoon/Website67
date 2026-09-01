@@ -1,4 +1,5 @@
-let A, B;
+
+let A, B, C;
 let mainCam;
 let camAnim = null; // holds active animation state, or null when idle
 let font;
@@ -13,7 +14,9 @@ let BBase = [];
 
 let saved;
 
-let index = 0;
+let operation;
+
+let index = -1;
 
 let animatedList = [];
 const cameraX = document.querySelector('#cameraX');
@@ -22,6 +25,7 @@ const cameraZ = document.querySelector('#cameraZ');
 const keyFrameBtn = document.querySelector('#keyframe');
 const playBtn = document.querySelector('#play');
 const saveBtn = document.querySelector('#save');
+const resetBtn = document.querySelector('#reset');
 const addSlideBtn = document.querySelector('#addSlide');
 
 const documentBody = document.querySelector('body');
@@ -38,6 +42,10 @@ const vector2Heading = document.querySelector('#vector2heading');
 const vector2Length = document.querySelector('#vector2length');
 const vector2Z = document.querySelector('#vector2z');
 
+const vector3Heading = document.querySelector('#vector3heading');
+const vector3Length = document.querySelector('#vector3length');
+const vector3Z = document.querySelector('#vector3z');
+
 const DisplayList = document.querySelector('.list');
 
 const previousBtn = document.querySelector('.previousBtn');
@@ -48,7 +56,127 @@ const observerB = document.querySelector('#observerB');
 
 const questionTextbox = document.querySelector('.questionText');
 
-addSlideBtn.addEventListener('click', function(){
+const pAx = document.querySelector('#pAx'), pAy = document.querySelector('#pAy'), pAz = document.querySelector('#pAz');
+const pBx = document.querySelector('#pBx'), pBy = document.querySelector('#pBy'), pBz = document.querySelector('#pBz');
+const pCx = document.querySelector('#pCx'), pCy = document.querySelector('#pCy'), pCz = document.querySelector('#pCz');
+const pDx = document.querySelector('#pDx'), pDy = document.querySelector('#pDy'), pDz = document.querySelector('#pDz');
+const volumeOutput = document.querySelector('#volumeOutput');
+
+let pointA, pointB, pointC, pointD;
+let boxEdges = null; // { AB, AC, AD, volume }, or null
+
+function applyPointParameters() {
+  pointA = createVector(Number(pAx.value), Number(pAy.value), Number(pAz.value));
+  pointB = createVector(Number(pBx.value), Number(pBy.value), Number(pBz.value));
+  pointC = createVector(Number(pCx.value), Number(pCy.value), Number(pCz.value));
+  pointD = createVector(Number(pDx.value), Number(pDy.value), Number(pDz.value));
+
+  boxEdges = parallelepipedFromPoints(pointA, pointB, pointC, pointD);
+  volumeOutput.textContent = `Volume: ${boxEdges.volume.toFixed(3)}`;
+}
+
+[pAx, pAy, pAz, pBx, pBy, pBz, pCx, pCy, pCz, pDx, pDy, pDz]
+  .forEach(input => input.addEventListener('input', applyPointParameters));
+
+function drawTriangle3D(v1, v2, v3, fillColour, strokeColour = null, baseX = 0, baseY = 0, baseZ = 0) {
+  push();
+  if (strokeColour) {
+    stroke(strokeColour);
+    strokeWeight(1.5);
+  } else {
+    noStroke();
+  }
+  fill(fillColour);
+
+  beginShape(TRIANGLES);
+  vertex(baseX + v1.x, baseY + v1.y, baseZ + (v1.z ?? 0));
+  vertex(baseX + v2.x, baseY + v2.y, baseZ + (v2.z ?? 0));
+  vertex(baseX + v3.x, baseY + v3.y, baseZ + (v3.z ?? 0));
+  endShape(CLOSE);
+  pop();
+}
+
+function drawParallelepiped(a, b, c, colour, baseX = 0, baseY = 0, baseZ = 0) {
+  // 8 vertices of the parallelepiped, relative to the base point
+  const verts = [
+    { x: 0, y: 0, z: 0 },                                   // 0: origin
+    { x: a.x, y: a.y, z: a.z ?? 0 },                         // 1: a
+    { x: b.x, y: b.y, z: b.z ?? 0 },                         // 2: b
+    { x: c.x, y: c.y, z: c.z ?? 0 },                         // 3: c
+    { x: a.x + b.x, y: a.y + b.y, z: (a.z ?? 0) + (b.z ?? 0) },             // 4: a+b
+    { x: a.x + c.x, y: a.y + c.y, z: (a.z ?? 0) + (c.z ?? 0) },             // 5: a+c
+    { x: b.x + c.x, y: b.y + c.y, z: (b.z ?? 0) + (c.z ?? 0) },             // 6: b+c
+    { x: a.x + b.x + c.x, y: a.y + b.y + c.y, z: (a.z ?? 0) + (b.z ?? 0) + (c.z ?? 0) } // 7: a+b+c
+  ];
+
+  // 12 edges, as pairs of vertex indices
+  const edges = [
+    [0, 1], [0, 2], [0, 3],   // from origin
+    [1, 4], [1, 5],           // from a
+    [2, 4], [2, 6],           // from b
+    [3, 5], [3, 6],           // from c
+    [4, 7], [5, 7], [6, 7]    // to the far corner
+  ];
+
+  push();
+  strokeCap(ROUND);
+  stroke(colour);
+  strokeWeight(1.5);
+  noFill();
+
+  for (const [i, j] of edges) {
+    const p1 = verts[i];
+    const p2 = verts[j];
+    line(
+      baseX + p1.x, baseY + p1.y, baseZ + p1.z,
+      baseX + p2.x, baseY + p2.y, baseZ + p2.z
+    );
+  }
+  pop();
+}
+
+// Optional: fills each of the 6 faces of the parallelepiped semi-transparently,
+// using drawTriangle3D twice per face. Call after drawParallelepiped for a
+// solid look, or instead of it if you don't want the wireframe.
+function fillParallelepipedFaces(a, b, c, fillColour, baseX = 0, baseY = 0, baseZ = 0) {
+  const az = a.z ?? 0, bz = b.z ?? 0, cz = c.z ?? 0;
+  const O  = { x: 0, y: 0, z: 0 };
+  const A_ = { x: a.x, y: a.y, z: az };
+  const B_ = { x: b.x, y: b.y, z: bz };
+  const C_ = { x: c.x, y: c.y, z: cz };
+  const AB = { x: a.x + b.x, y: a.y + b.y, z: az + bz };
+  const AC = { x: a.x + c.x, y: a.y + c.y, z: az + cz };
+  const BC = { x: b.x + c.x, y: b.y + c.y, z: bz + cz };
+  const ABC = { x: a.x + b.x + c.x, y: a.y + b.y + c.y, z: az + bz + cz };
+
+  const faces = [
+    [O, A_, AB, B_],   // bottom (spanned by a, b)
+    [C_, AC, ABC, BC], // top (offset by c)
+    [O, A_, AC, C_],   // front (spanned by a, c)
+    [B_, AB, ABC, BC], // back
+    [O, B_, BC, C_],   // left (spanned by b, c)
+    [A_, AB, ABC, AC]  // right
+  ];
+
+  for (const [p1, p2, p3, p4] of faces) {
+    drawTriangle3D(p1, p2, p3, fillColour, null, baseX, baseY, baseZ);
+    drawTriangle3D(p1, p3, p4, fillColour, null, baseX, baseY, baseZ);
+  }
+}
+
+function parallelepipedFromPoints(A, B, C, D) {
+  const AB = createVector(B.x - A.x, B.y - A.y, B.z - A.z);
+  const AC = createVector(C.x - A.x, C.y - A.y, C.z - A.z);
+  const AD = createVector(D.x - A.x, D.y - A.y, D.z - A.z);
+
+  // Scalar triple product: AB . (AC x AD)
+  const cross = p5.Vector.cross(AC, AD);
+  const volume = Math.abs(AB.dot(cross));
+
+  return { AB, AC, AD, volume };
+}
+
+addSlideBtn.addEventListener('click', function () {
   const slide = document.createElement('div');
   slide.classList.add('blank-slide');
   documentBody.append(slide);
@@ -82,24 +210,44 @@ previousBtn.addEventListener('mouseleave', function () {
   previousBtn.style.opacity = '0.1';
 });
 
-previousBtn.addEventListener('click', function () {
-  console.log(index);
-  if (index > 0) {
-    index--;
-    console.log(saved);
-    console.log(saved[index]);
-    B = angleDrawer(saved[index][0][0], saved[index][0][1], saved[index][0][2] ?? 0);
-    A = angleDrawer(saved[index][1][0], saved[index][1][1], saved[index][1][2] ?? 0);
-
-    if (saved[index][2] != null){
-    questionTextbox.innerText = saved[index][2];
-    }else{
-      questionTextbox.innerText = 'No saved entries';
-    }
-  } else {
-    console.log('least entries');
+function loadSavedEntry(entryIndex) {
+  const entry = saved[entryIndex];
+  if (!entry) {
+    return;
   }
-})
+
+  index = entryIndex;
+
+  vector1Heading.value = entry[0][0];
+  vector1Length.value = entry[0][1];
+  vector1Z.value = entry[0][2] ?? 0;
+  vector2Heading.value = entry[1][0];
+  vector2Length.value = entry[1][1];
+  vector2Z.value = entry[1][2] ?? 0;
+
+  A = angleDrawer(entry[0][0], entry[0][1], entry[0][2] ?? 0);
+  B = angleDrawer(entry[1][0], entry[1][1], entry[1][2] ?? 0);
+  questionTextbox.innerText = entry[2] ?? 'No saved entries';
+
+  operation = entry[3] ?? 0;
+  R = null;
+  projVector = null;
+  crossVector = null;
+
+  if (operation === 1) {
+    addVector();
+  } else if (operation === 2) {
+    dotVectorOperation();
+  } else if (operation === 3) {
+    crossVectorOperation();
+  }
+}
+
+previousBtn.addEventListener('click', function () {
+  if (index > 0) {
+    loadSavedEntry(index - 1);
+  }
+});
 
 forwardBtn.addEventListener('mouseenter', function () {
   forwardBtn.style.opacity = '0.67';
@@ -111,41 +259,41 @@ forwardBtn.addEventListener('mouseleave', function () {
 });
 
 forwardBtn.addEventListener('click', function () {
-  console.log(index);
   if (index < saved.length - 1) {
-    index++;
-    B = angleDrawer(saved[index][0][0], saved[index][0][1], saved[index][0][2] ?? 0);
-    A = angleDrawer(saved[index][1][0], saved[index][1][1], saved[index][1][2] ?? 0);
-
-    if (saved[index][2] != null){
-    questionTextbox.innerText = saved[index][2];
-    }else{
-      questionTextbox.innerText = 'No saved entries';
-    }
-
+    loadSavedEntry(index + 1);
   } else {
-    console.log('max entries');
+    applyCurrentOperation();
   }
-})
+});
 
 saved = JSON.parse(localStorage.getItem('saved')) ?? [];
 
+// sync from Firestore, falling back to whatever's cached locally
+//firebaseFns.loadAll().then((remoteSaved) => {
+//  if (remoteSaved.length > 0) {
+//   saved = remoteSaved;
+//   localStorage.setItem('saved', JSON.stringify(saved));
+// }
+//});
+
 saveBtn.addEventListener('click', function () {
-  index++;
   saved.push([
     [Number(vector1Heading.value), Number(vector1Length.value), Number(vector1Z.value)],
     [Number(vector2Heading.value), Number(vector2Length.value), Number(vector2Z.value)],
-    questionTextbox.innerText
+    questionTextbox.innerText,
+    operation ?? 0
   ]);
+  index = saved.length - 1;
 
   try {
     localStorage.setItem('saved', JSON.stringify(saved));
-    const savedTools = JSON.parse(localStorage.getItem('saved'));
-    console.log(savedTools);
+    operation = 0;
   } catch (error) {
     console.error(error);
   }
-})
+
+  // firebaseFns.saveAll(saved);
+});
 
 function createStuff(stuff) {
   const createElement = document.createElement('h1');
@@ -162,13 +310,13 @@ keyFrameBtn.addEventListener('click', function () {
 cameraX.addEventListener('input', function () {
   targetCoordinates[0] = Number(cameraX.value);
   animateCameraTo({ x: targetCoordinates[0], y: targetCoordinates[1], z: targetCoordinates[2] }, { x: lastYaw, y: lastPitch, z: lastRoll }, 1);
- // console.log(targetCoordinates);
+  // console.log(targetCoordinates);
 });
 
 cameraY.addEventListener('input', function () {
   targetCoordinates[1] = Number(cameraY.value);
   animateCameraTo({ x: targetCoordinates[0], y: targetCoordinates[1], z: targetCoordinates[2] }, { x: lastYaw, y: lastPitch, z: lastRoll }, 1);
- // console.log(targetCoordinates);
+  // console.log(targetCoordinates);
 });
 
 cameraZ.addEventListener('input', function () {
@@ -196,13 +344,13 @@ let vectorDots = {};
 function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, velocity = 1, dotId = textt, baseX = 0, baseY = 0, baseZ = 0) {
 
   // --- Manim-style label: slightly larger, no stroke, soft weight ---
-  push();
-  noStroke();
-  fill('#FFFF00'); // Manim yellow reads better than deeppink on dark bg
-  textSize(16);
-  textFont(font); // serif reads closer to LaTeX than default sans
-  text(textt, baseX + v.x + offsetX, baseY + v.y + offsetY);
-  pop();
+  //push();
+  // noStroke();
+  //  fill('#FFFF00'); // Manim yellow reads better than deeppink on dark bg
+  //  textSize(16);
+  //  textFont(font); // serif reads closer to LaTeX than default sans
+  // text(textt, baseX + v.x + offsetX, baseY + v.y + offsetY);
+  // pop();
 
   // --- Glow pass behind the main line (Manim's soft-highlight look) ---
   //  push();
@@ -279,15 +427,27 @@ function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, 
   // circle(dotX, dotY, 7);
   //  pop();
 }
-
+let canvas;
+let mathDiv;
 function preload() {
   font = loadFont('assets/Typographica-Blp5.ttf');
+  myModel = loadModel('assets/cup_lp.obj', true); // true = normalize size
 }
+
 function setup() {
-  createCanvas(windowWidth - 145, windowHeight, WEBGL);
+  canvas = createCanvas(windowWidth - 145, windowHeight, WEBGL);
+  const canvasContainer = document.getElementById('canvas-container') || document.body;
+  canvas.parent(canvasContainer);
+
+    applyVectorParameters();
+  applyPointParameters();
+  // create one reusable overlay div, absolutely positioned
+  mathDiv = createDiv('');
+  mathDiv.parent(canvasContainer);
+  mathDiv.style('position', 'absolute');
+  mathDiv.style('pointer-events', 'none');
   //canvas width 1536, 775
-  A = angleDrawer(0, 200, Number(vector1Z.value));
-  B = angleDrawer(90, 200, Number(vector2Z.value));
+  applyVectorParameters();
 
   mainCam = createCamera();
   mainCam.setPosition(0, 0, 500);
@@ -298,7 +458,8 @@ function setup() {
 
 let R;
 let RHeading;
-addBtn.addEventListener('click', function () {
+function addVector() {
+  operation = 1;
   R = p5.Vector.add(A, B);
   const radians = Math.atan2(R.y, R.x);
 
@@ -307,50 +468,116 @@ addBtn.addEventListener('click', function () {
 
   RHeading = degrees * -1;
   console.log(degrees);
-})
+}
+addBtn.addEventListener('click', addVector);
 
-vector1Heading.addEventListener('input', function () {
+function applyVectorParameters() {
   A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
-  console.log(A);
-})
-
-vector1Length.addEventListener('input', function () {
-  A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
-})
-
-vector1Z.addEventListener('input', function () {
-  A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
-})
-
-vector2Heading.addEventListener('input', function () {
   B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
-})
+    C = angleDrawer(vector3Heading.value, vector3Length.value, Number(vector3Z.value));
+}
 
-vector2Length.addEventListener('input', function () {
-  B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
-})
+function applyCurrentOperation() {
+  applyVectorParameters();
 
-vector2Z.addEventListener('input', function () {
-  B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
-})
+  if (operation === 1) {
+    addVector();
+  } else if (operation === 2) {
+    dotVectorOperation();
+  } else if (operation === 3) {
+    crossVectorOperation();
+  }
+}
+
+vector1Heading.addEventListener('input', applyVectorParameters);
+vector1Length.addEventListener('input', applyVectorParameters);
+vector1Z.addEventListener('input', applyVectorParameters);
+vector2Heading.addEventListener('input', applyVectorParameters);
+vector2Length.addEventListener('input', applyVectorParameters);
+vector2Z.addEventListener('input', applyVectorParameters);
+vector3Heading.addEventListener('input', applyVectorParameters);
+vector3Length.addEventListener('input', applyVectorParameters);
+vector3Z.addEventListener('input', applyVectorParameters);
+
+resetBtn.addEventListener('click', function () {
+  vector1Heading.value = 1;
+  vector1Length.value = 200;
+  vector1Z.value = 0;
+  vector2Heading.value = 1;
+  vector2Length.value = 200;
+  vector2Z.value = 0;
+  vector3Heading.value = 1;
+  vector3Length.value = 200;
+  vector3Z.value = 0;
+  observerA.checked = false;
+  observerB.checked = false;
+  ABase = [];
+  BBase = [];
+  operation = 0;
+  R = null;
+  projVector = null;
+  crossVector = null;
+  index = -1;
+  applyVectorParameters();
+});
 
 let projVector;
 
-dotproductBtn.addEventListener('click', function () {
+function dotVectorOperation() {
+  operation = 2;
   let dot = p5.Vector.dot(A, B);
   projVector = B.copy().mult(dot / B.magSq());
-})
+}
+dotproductBtn.addEventListener('click', dotVectorOperation);
 
 let crossVector;
-crossProductBtn.addEventListener('click', function () {
+
+function crossVectorOperation() {
+  operation = 3;
   crossVector = p5.Vector.cross(A.copy(), B.copy());
   console.log(crossVector);
-})
-
-function connectVector() {
-
+}
+crossProductBtn.addEventListener('click', crossVectorOperation);
+function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
+  const canvasBounds = canvas.elt.getBoundingClientRect();
+  katex.render(textGG, mathDiv.elt, { throwOnError: false });
+  mathDiv.style('left', canvasBounds.left + canvasBounds.width / 2 + offsetX + 'px');
+  mathDiv.style('top', canvasBounds.top + canvasBounds.height / 2 + offsetY + 'px');
+  mathDiv.style('color', color);
+  mathDiv.style('font-size', fontSize + 'px');
 }
 
+function addLine(x1, y1, z1, x2, y2, z2, scale) {
+  push();
+  strokeCap(ROUND);
+  stroke(color(0, 255, 0));
+  strokeWeight(0.5);
+  smooth();
+  line(x1 * scale, y1 * scale, z1, x2 * scale, y2 * scale, z2);
+  pop();
+}
+
+let isShiftPressed = false;
+let panX = 0;
+let panY = 0;
+
+function mouseDragged() {
+  // Update pan position based on mouse movement
+  panX += mouseX - pmouseX;
+  panY += mouseY - pmouseY;
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Shift') {
+    isShiftPressed = true;
+  }
+});
+
+window.addEventListener('keyup', (event) => {
+  if (event.key === 'Shift') {
+    isShiftPressed = false;
+  }
+});
 
 function draw() {
   background(0);
@@ -358,13 +585,26 @@ function draw() {
   // Only let the user orbit when no scripted animation is running,
   // otherwise orbitControl() will overwrite the camera we're animating.
   if (!camAnim) {
-    orbitControl();
+    if (isShiftPressed) {
+
+      orbitControl();
+    }
+    else {
+      orbitControl(0, 0, 1);
+      translate(panX * 0.4, panY * 0.4, 0);
+    }
+
   } else {
     updateCameraAnimation();
   }
 
+  //  lights();
+  // normalMaterial();
+  //model(myModel);
+
+  // addLine (1,4,3,3,3,0, 10);
   drawGround(0, 0, 0, 30);
-  // drawGround(50, 200, 0, 30);
+  drawAxis(0, 0, 0, 200);
 
   // let R = p5.Vector.add(A, B);
 
@@ -379,31 +619,37 @@ function draw() {
   //  drawVector(R, color(0, 0, 255));
 
   if (A != null) {
-    drawVector(A, color(255, 0, 0), 10, 0, '120kmh', vector1Heading.value, 1, 'A-connected', BBase[0], BBase[1]);
+    drawVector(A, color(255, 0, 0), 250, 700, '120kmh', vector1Heading.value, 1, 'A-connected', BBase[0], BBase[1]);
   }
   if (B != null) {
-    drawVector(B, color(0, 0, 255), -20, 25, 'neg 50kmh', vector2Heading.value, 1, 'B-connected', ABase[0], ABase[1]);
+    drawVector(B, color(0, 0, 255), 0, 0, 'neg 50kmh', vector2Heading.value, 1, 'B-connected', ABase[0], ABase[1]);
   }
   if (R != null) {
-    drawVector(R, color(0, 255, 0), -30, -60, 'Resultant', RHeading);
+    drawVector(R, color(0, 255, 0), 0, 0, 'Resultant', RHeading);
   }
   if (projVector != null) {
-    drawVector(projVector, color(0, 255, 0), 50, 50, '20deg', 20);
-  }  
-  if (crossVector != null) {
-    drawVector(crossVector, color(255, 255, 0), 50, 50, 'cross', 20, 1, 'cross', 0, 0, 0);
+    drawVector(projVector, color(0, 255, 0), 0, 0, '20deg', 20);
   }
+  if (crossVector != null) {
+    drawVector(crossVector, color(255, 255, 0), 0, 0, 'cross', 20, 1, 'cross', 0, 0, 0);
+  }
+  if (C != null) {
+  drawVector(C, color(255, 165, 0), 0, 0, 'C', vector3Heading.value, 1, 'C-connected', 0, 0, 0);
+}
+const SCALE = 60;
+
+if (boxEdges != null) {
+  const scaledAB = p5.Vector.mult(boxEdges.AB, SCALE);
+  const scaledAC = p5.Vector.mult(boxEdges.AC, SCALE);
+  const scaledAD = p5.Vector.mult(boxEdges.AD, SCALE);
+  const base = p5.Vector.mult(pointA, SCALE);
+
+  drawParallelepiped(scaledAB, scaledAC, scaledAD, color(0, 255, 255), base.x, base.y, base.z);
+  fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
+}
   getCameraOrientation();
 }
 
-
-
-function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
-  fill(color);
-  textFont(font);
-  textSize(fontSize);
-  text(textGG, offsetX, offsetY);
-}
 // ---- Camera animation ----
 
 function animateCameraTo(newPos, newTarget, duration = 1000) {
@@ -458,33 +704,39 @@ playBtn.addEventListener('click', function () {
 });
 
 function drawGround(x, y, z, length) {
- // push();
- // stroke(50);
+  // push();
+  // stroke(50);
 
   // for (let i = -250; i <= 250; i += 25) {
 
   //-250, 0, 0, 250,0 ,0;
- // line(x + length, -y, z, x - length, -y, z); //special line
- //     line(i, 0, -250, i, 0, 250);
+  // line(x + length, -y, z, x - length, -y, z); //special line
+  //     line(i, 0, -250, i, 0, 250);
   //  line(-250, 0, i, 250, 0, i);
 
   // }
- // pop();
+  // pop();
   // Grid lines
   stroke(80);
 
-   for (let i = -500; i <= 500; i += 25) {
-  //0, 250, 0, 0, -250, 0
+  for (let i = -500; i <= 500; i += 25) {
+    //0, 250, 0, 0, -250, 0
 
 
-  //make function for perpendicular 
+    //make function for perpendicular 
 
-  //line(x, -(y + length), z, x, -(y - length), z); //special-line
-  line(i, -500, 0, i, 500, 0);   // vertical lines
-   line(-500, i, 0, 500, i, 0);   // horizontal lines
+    //line(x, -(y + length), z, x, -(y - length), z); //special-line
+    line(i, -500, 0, i, 500, 0);   // vertical lines
+    line(-500, i, 0, 500, i, 0);   // horizontal lines
 
-   }
+  }
 
+}
+
+function drawAxis(x, y, z, length) {
+  stroke(200);
+  line(x + length, -y, z, x - length, -y, z); //special line
+  line(x, -(y + length), z, x, -(y - length), z); //special-line
 }
 
 function getCameraOrientation() {
@@ -538,7 +790,7 @@ function getCameraOrientation() {
     targetCoordinates[3] = yaw;
     targetCoordinates[4] = pitch;
     targetCoordinates[5] = roll;
-   // console.log(yaw, pitch, roll);
+    // console.log(yaw, pitch, roll);
     lastYaw = yaw;
     lastPitch = pitch;
     lastRoll = roll;

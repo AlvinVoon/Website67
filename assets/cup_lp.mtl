@@ -1,0 +1,12 @@
+# MTL file - created by a modified js OBJExporter
+
+newmtl cup
+Tr 0.0000
+Tf 1.0000 1.0000 1.0000
+illum 1
+Pr 0.5
+Pds 1
+Pl 1
+Ka 1 1 1
+Kd 0.8000000715255737 0.2026781290769577 0.045404501259326935
+Ke 0 0 0

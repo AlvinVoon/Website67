@@ -1,5 +1,5 @@
 import * as Combinatorics from 'https://cdn.jsdelivr.net/npm/js-combinatorics@2.1.2/combinatorics.min.js';
-import {generateMotionMachine, transition} from './motionMachine.js';
+import { generateMotionMachine, transition } from './motionMachine.js';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
@@ -79,11 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const actorStates = {};
 
     let animated = false;
-animateKey.addEventListener('click', () => {
-    animated = !animated;
-    animateKey.classList.toggle('animated', animated);
-    animateKey.classList.toggle('unanimate', !animated);
-});
+    animateKey.addEventListener('click', () => {
+        animated = !animated;
+        animateKey.classList.toggle('animated', animated);
+        animateKey.classList.toggle('unanimate', !animated);
+    });
     const addDocFunction = async (input) => {
         try {
             const docRef = await addDoc(collection(db, "questions"), {
@@ -839,13 +839,13 @@ animateKey.addEventListener('click', () => {
 
             console.log(conditionData[0]);
             console.log(tableData);
-const matches = Object.entries(tableData)
-    .filter(([key, value]) => JSON.stringify(value).includes(conditionData))
-    .map(([key]) => key);
-    console.log(matches);
-    console.log(tableData[matches[0]]);
-    const remaining = Object.keys(tableData).filter(key => !matches.includes(key));
-    const index = conditionInputNum.value;
+            const matches = Object.entries(tableData)
+                .filter(([key, value]) => JSON.stringify(value).includes(conditionData))
+                .map(([key]) => key);
+            console.log(matches);
+            console.log(tableData[matches[0]]);
+            const remaining = Object.keys(tableData).filter(key => !matches.includes(key));
+            const index = conditionInputNum.value;
             for (let i = index; i < tableData[matches[0]].count + 1; i++) {
                 console.log(i, index);
                 const row = document.createElement('tr');
@@ -857,9 +857,9 @@ const matches = Object.entries(tableData)
 
                 const td2 = document.createElement('td');
 
-                td2.textContent =`\\( _${tableData[remaining[0]].count}C_${sizeInput.value-i}\\)`;;
+                td2.textContent = `\\( _${tableData[remaining[0]].count}C_${sizeInput.value - i}\\)`;;
                 row.append(td2);
-            }     
+            }
             MathJax.typesetPromise([table]);
             result = result.filter(item => {
                 const matchCount = item.filter(element => element.includes(conditionData[0])).length;

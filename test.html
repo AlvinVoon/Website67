@@ -11,6 +11,9 @@
 
   <script src="libraries/p5.min.js"></script>
   <script src="libraries/p5.sound.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.18.4/dist/katex.css" integrity="sha384-BTYW2YbaEIuKb0WnduFElGjiUxa55Yt6KOh9vGSOkqZ8L/l6rOxx85EW3XWx6jFE" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.18.4/dist/katex.js" integrity="sha384-gJ0qkZPTkmucpFVu0FoXqw4SRjnNnHiPj7uaF56Fn23UoLwa44b46aqhs/LPOFxD" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -30,6 +33,7 @@
     <button id="keyframe" type="button">Key Frame</button>
     <button id="play" type="button">Play</button>
     <button id="save" type="button">Save</button>
+    <button id="reset" type="button">Reset</button>
 
     <label for="vector1heading">Vector 1 (heading):</label>
     <input type="number" id="vector1heading" name="Vector1heading" min="-100" max="100" step="1" value="1">
@@ -43,6 +47,17 @@
     <input type="number" id="vector2length" name="Vector2length" min="-100" max="100" step="1" value="200">
     <label for="vector2z">Vector 2 (z-index):</label>
     <input type="number" id="vector2z" name="Vector2z" min="-500" max="500" step="1" value="0">
+    <label for="vector3heading">Vector 3 (heading):</label>
+    <input type="number" id="vector3heading" name="Vector3heading" min="-100" max="100" step="1" value="1">
+    <label for="vector3length">Vector 3 (length):</label>
+    <input type="number" id="vector3length" name="Vector3length" min="-100" max="100" step="1" value="200">
+    <label for="vector3z">Vector 3 (z-index):</label>
+    <input type="number" id="vector3z" name="Vector3z" min="-500" max="500" step="1" value="0">
+<label>A <input id="pAx" type="number" value="0"><input id="pAy" type="number" value="0"><input id="pAz" type="number" value="0"></label>
+<label>B <input id="pBx" type="number" value="1"><input id="pBy" type="number" value="-1"><input id="pBz" type="number" value="2"></label>
+<label>C <input id="pCx" type="number" value="0"><input id="pCy" type="number" value="3"><input id="pCz" type="number" value="-1"></label>
+<label>D <input id="pDx" type="number" value="3"><input id="pDy" type="number" value="-4"><input id="pDz" type="number" value="1"></label>
+<div id="volumeOutput"></div>
     <div>
       <label for="observerA">A as Observer</label>
       <input type="checkbox" id="observerA" name="observerA" value="observerA">
@@ -59,6 +74,8 @@
 
   <script src="https://kit.fontawesome.com/87e6eea42a.js" crossorigin="anonymous"></script>
   <script src="sketch.js"></script>
+  <script type="module" src="save.js"></script>
+
 </body>
 
 </html>
