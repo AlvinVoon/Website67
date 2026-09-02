@@ -307,9 +307,12 @@ forwardBtn.addEventListener('click', function () {
 });
 
 saved = JSON.parse(localStorage.getItem('saved')) ?? [];
-console.log(saved);
-// sync from Firestore, falling back to whatever's cached locally
-if (window.firebaseFns) {
+
+function loadSavedData() {
+  if (!window.firebaseFns) {
+    return;
+  }
+
   window.firebaseFns.loadAll().then((remoteSaved) => {
     console.log('retrieved from firebase');
     if (remoteSaved.length > 0) {
@@ -317,8 +320,13 @@ if (window.firebaseFns) {
       console.log(saved);
       localStorage.setItem('saved', JSON.stringify(saved));
     }
+  }).catch((error) => {
+    console.error('Error retrieving saved list:', error);
   });
 }
+
+window.addEventListener('firebaseFnsReady', loadSavedData, { once: true });
+loadSavedData();
 
 saveBtn.addEventListener('click', function () {
   saved.push([

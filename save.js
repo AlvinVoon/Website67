@@ -78,3 +78,4 @@ const loadAll = async () => {
 // Expose to the global scope instead of `export default`,
 // so sketch.js can stay a normal (non-module) script.
 window.firebaseFns = { saveAll, loadAll };
+window.dispatchEvent(new Event('firebaseFnsReady'));
