@@ -144,7 +144,7 @@ function drawParallelepiped(a, b, c, colour, baseX = 0, baseY = 0, baseZ = 0) {
 // solid look, or instead of it if you don't want the wireframe.
 function fillParallelepipedFaces(a, b, c, fillColour, baseX = 0, baseY = 0, baseZ = 0) {
   const az = a.z ?? 0, bz = b.z ?? 0, cz = c.z ?? 0;
-  const O = { x: 0, y: 0, z: 0 };
+  const O  = { x: 0, y: 0, z: 0 };
   const A_ = { x: a.x, y: a.y, z: az };
   const B_ = { x: b.x, y: b.y, z: bz };
   const C_ = { x: c.x, y: c.y, z: cz };
@@ -183,17 +183,8 @@ function parallelepipedFromPoints(A, B, C, D) {
 addSlideBtn.addEventListener('click', function () {
   const slide = document.createElement('div');
   slide.classList.add('blank-slide');
-  const img = document.createElement('img');
-  img.src = "question8.jpg";
-  const cross = document.createElement('button');
-  cross.textContent = "x";
-  cross.classList.add('cross-button');
-  cross.addEventListener('click', function(){
-    slide.remove();
-  })
-  slide.appendChild(img);
-  slide.appendChild(cross);
   documentBody.append(slide);
+
 })
 
 observerA.addEventListener('change', (event) => {
@@ -295,9 +286,7 @@ function loadSavedEntry(entryIndex) {
 previousBtn.addEventListener('click', function () {
   if (index > 0) {
     loadSavedEntry(index - 1);
-    loadSavedEntry(index - 1);
   }
-});
 });
 
 forwardBtn.addEventListener('mouseenter', function () {
@@ -315,7 +304,6 @@ forwardBtn.addEventListener('click', function () {
   } else {
     applyCurrentOperation();
   }
-});
 });
 
 saved = JSON.parse(localStorage.getItem('saved')) ?? [];
@@ -377,13 +365,11 @@ cameraX.addEventListener('input', function () {
   targetCoordinates[0] = Number(cameraX.value);
   animateCameraTo({ x: targetCoordinates[0], y: targetCoordinates[1], z: targetCoordinates[2] }, { x: lastYaw, y: lastPitch, z: lastRoll }, 1);
   // console.log(targetCoordinates);
-  // console.log(targetCoordinates);
 });
 
 cameraY.addEventListener('input', function () {
   targetCoordinates[1] = Number(cameraY.value);
   animateCameraTo({ x: targetCoordinates[0], y: targetCoordinates[1], z: targetCoordinates[2] }, { x: lastYaw, y: lastPitch, z: lastRoll }, 1);
-  // console.log(targetCoordinates);
   // console.log(targetCoordinates);
 });
 
@@ -412,13 +398,6 @@ let vectorDots = {};
 function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, velocity = 1, dotId = textt, baseX = 0, baseY = 0, baseZ = 0) {
 
   // --- Manim-style label: slightly larger, no stroke, soft weight ---
-  //push();
-  // noStroke();
-  //  fill('#FFFF00'); // Manim yellow reads better than deeppink on dark bg
-  //  textSize(16);
-  //  textFont(font); // serif reads closer to LaTeX than default sans
-  // text(textt, baseX + v.x + offsetX, baseY + v.y + offsetY);
-  // pop();
   //push();
   // noStroke();
   //  fill('#FFFF00'); // Manim yellow reads better than deeppink on dark bg
@@ -504,20 +483,17 @@ function drawVector(v, colour, offsetX = 0, offsetY = 0, textt = '', angle = 0, 
 }
 let canvas;
 let mathDiv;
-let canvas;
-let mathDiv;
 function preload() {
   font = loadFont('assets/Typographica-Blp5.ttf');
   myModel = loadModel('assets/cup_lp.obj', true); // true = normalize size
 }
-
 
 function setup() {
   canvas = createCanvas(windowWidth - 145, windowHeight, WEBGL);
   const canvasContainer = document.getElementById('canvas-container') || document.body;
   canvas.parent(canvasContainer);
 
-  applyVectorParameters();
+    applyVectorParameters();
   applyPointParameters();
   // create one reusable overlay div, absolutely positioned
   mathDiv = createDiv('');
@@ -538,8 +514,6 @@ let R;
 let RHeading;
 function addVector() {
   operation = 1;
-function addVector() {
-  operation = 1;
   R = p5.Vector.add(A, B);
   const radians = Math.atan2(R.y, R.x);
 
@@ -554,7 +528,7 @@ addBtn.addEventListener('click', addVector);
 function applyVectorParameters() {
   A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
   B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
-  C = angleDrawer(vector3Heading.value, vector3Length.value, Number(vector3Z.value));
+    C = angleDrawer(vector3Heading.value, vector3Length.value, Number(vector3Z.value));
 }
 
 function applyCurrentOperation() {
@@ -600,15 +574,39 @@ resetBtn.addEventListener('click', function () {
   index = -1;
   showVectorC = true;
   applyVectorParameters();
-
-  pAx.value = 0; pAy.value = 0; pAz.value = 0;
-  pBx.value = 0; pBy.value = 0; pBz.value = 0;
-  pCx.value = 0; pCy.value = 0; pCz.value = 0;
-  pDx.value = 0; pDy.value = 0; pDz.value = 0;
+    pAx.value = 0; pAy.value = 0; pAz.value = 0;
+  pBx.value = 1; pBy.value = 0; pBz.value = 0;
+  pCx.value = 0; pCy.value = 1; pCz.value = 0;
+  pDx.value = 0; pDy.value = 0; pDz.value = 1;
   applyPointParameters();
 });
 
 let projVector;
+
+function dotVectorOperation() {
+  operation = 2;
+  let dot = p5.Vector.dot(A, B);
+  projVector = B.copy().mult(dot / B.magSq());
+}
+dotproductBtn.addEventListener('click', dotVectorOperation);
+
+let crossVector;
+
+function crossVectorOperation() {
+  operation = 3;
+  crossVector = p5.Vector.cross(A.copy(), B.copy());
+  console.log(crossVector);
+}
+crossProductBtn.addEventListener('click', crossVectorOperation);
+function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
+  if (!canvas) return; // Guard against canvas not being initialized yet
+  const canvasBounds = canvas.elt.getBoundingClientRect();
+  katex.render(textGG, mathDiv.elt, { throwOnError: false });
+  mathDiv.style('left', canvasBounds.left + canvasBounds.width / 2 + offsetX + 'px');
+  mathDiv.style('top', canvasBounds.top + canvasBounds.height / 2 + offsetY + 'px');
+  mathDiv.style('color', color);
+  mathDiv.style('font-size', fontSize + 'px');
+}
 
 deleteBtn.addEventListener('click', function () {
   if (index < 0 || !saved[index]) return; // nothing loaded to delete
@@ -641,34 +639,6 @@ deleteBtn.addEventListener('click', function () {
     loadSavedEntry(index);
   }
 });
-
-
-function dotVectorOperation() {
-  operation = 2;
-  let dot = p5.Vector.dot(A, B);
-  projVector = B.copy().mult(dot / B.magSq());
-}
-dotproductBtn.addEventListener('click', dotVectorOperation);
-}
-dotproductBtn.addEventListener('click', dotVectorOperation);
-
-let crossVector;
-
-function crossVectorOperation() {
-  operation = 3;
-  crossVector = p5.Vector.cross(A.copy(), B.copy());
-  console.log(crossVector);
-}
-crossProductBtn.addEventListener('click', crossVectorOperation);
-function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
-  if (!canvas) return; // Guard against canvas not being initialized yet
-  const canvasBounds = canvas.elt.getBoundingClientRect();
-  katex.render(textGG, mathDiv.elt, { throwOnError: false });
-  mathDiv.style('left', canvasBounds.left + canvasBounds.width / 2 + offsetX + 'px');
-  mathDiv.style('top', canvasBounds.top + canvasBounds.height / 2 + offsetY + 'px');
-  mathDiv.style('color', color);
-  mathDiv.style('font-size', fontSize + 'px');
-}
 
 function addLine(x1, y1, z1, x2, y2, z2, scale) {
   push();
@@ -725,8 +695,6 @@ function draw() {
   // normalMaterial();
   //model(myModel);
 
-  const scale = 50;
-  //drawTriangle3D(createVector(2*scale, 1*scale, 1*scale), createVector(3*scale, -1*scale, 1*scale), createVector(1*scale, -1*scale, 1*scale), color(255, 255, 255, 50));
   // addLine (1,4,3,3,3,0, 10);
   drawGround(0, 0, 0, 30);
   drawAxis(0, 0, 0, 200);
@@ -745,19 +713,14 @@ function draw() {
 
   if (A != null) {
     drawVector(A, color(255, 0, 0), 250, 700, '120kmh', vector1Heading.value, 1, 'A-connected', BBase[0], BBase[1]);
-    drawVector(A, color(255, 0, 0), 250, 700, '120kmh', vector1Heading.value, 1, 'A-connected', BBase[0], BBase[1]);
   }
   if (B != null) {
-    drawVector(B, color(0, 0, 255), 0, 0, 'neg 50kmh', vector2Heading.value, 1, 'B-connected', ABase[0], ABase[1]);
     drawVector(B, color(0, 0, 255), 0, 0, 'neg 50kmh', vector2Heading.value, 1, 'B-connected', ABase[0], ABase[1]);
   }
   if (R != null) {
     drawVector(R, color(0, 255, 0), 0, 0, 'Resultant', RHeading);
-    drawVector(R, color(0, 255, 0), 0, 0, 'Resultant', RHeading);
   }
   if (projVector != null) {
-    drawVector(projVector, color(0, 255, 0), 0, 0, '20deg', 20);
-  }
     drawVector(projVector, color(0, 255, 0), 0, 0, '20deg', 20);
   }
   if (crossVector != null) {
@@ -768,17 +731,17 @@ function draw() {
   if (C != null && showVectorC) {
     drawVector(C, color(255, 165, 0), 0, 0, 'C', vector3Heading.value, 1, 'C-connected', 0, 0, 0);
   }
-  const SCALE = 60;
+const SCALE = 60;
 
-  if (boxEdges != null) {
-    const scaledAB = p5.Vector.mult(boxEdges.AB, SCALE);
-    const scaledAC = p5.Vector.mult(boxEdges.AC, SCALE);
-    const scaledAD = p5.Vector.mult(boxEdges.AD, SCALE);
-    const base = p5.Vector.mult(pointA, SCALE);
+if (boxEdges != null) {
+  const scaledAB = p5.Vector.mult(boxEdges.AB, SCALE);
+  const scaledAC = p5.Vector.mult(boxEdges.AC, SCALE);
+  const scaledAD = p5.Vector.mult(boxEdges.AD, SCALE);
+  const base = p5.Vector.mult(pointA, SCALE);
 
-    drawParallelepiped(scaledAB, scaledAC, scaledAD, color(0, 255, 255), base.x, base.y, base.z);
-    fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
-  }
+  drawParallelepiped(scaledAB, scaledAC, scaledAD, color(0, 255, 255), base.x, base.y, base.z);
+  fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
+}
   getCameraOrientation();
 }
 
@@ -838,41 +801,29 @@ playBtn.addEventListener('click', function () {
 function drawGround(x, y, z, length) {
   // push();
   // stroke(50);
-  // push();
-  // stroke(50);
 
   // for (let i = -250; i <= 250; i += 25) {
 
   //-250, 0, 0, 250,0 ,0;
   // line(x + length, -y, z, x - length, -y, z); //special line
   //     line(i, 0, -250, i, 0, 250);
-  // line(x + length, -y, z, x - length, -y, z); //special line
-  //     line(i, 0, -250, i, 0, 250);
   //  line(-250, 0, i, 250, 0, i);
 
   // }
-  // pop();
   // pop();
   // Grid lines
   stroke(80);
 
   for (let i = -500; i <= 500; i += 25) {
     //0, 250, 0, 0, -250, 0
-  for (let i = -500; i <= 500; i += 25) {
-    //0, 250, 0, 0, -250, 0
 
 
-    //make function for perpendicular 
     //make function for perpendicular 
 
     //line(x, -(y + length), z, x, -(y - length), z); //special-line
     line(i, -500, 0, i, 500, 0);   // vertical lines
     line(-500, i, 0, 500, i, 0);   // horizontal lines
-    //line(x, -(y + length), z, x, -(y - length), z); //special-line
-    line(i, -500, 0, i, 500, 0);   // vertical lines
-    line(-500, i, 0, 500, i, 0);   // horizontal lines
 
-  }
   }
 
 }
@@ -934,7 +885,6 @@ function getCameraOrientation() {
     targetCoordinates[3] = yaw;
     targetCoordinates[4] = pitch;
     targetCoordinates[5] = roll;
-    // console.log(yaw, pitch, roll);
     // console.log(yaw, pitch, roll);
     lastYaw = yaw;
     lastPitch = pitch;
