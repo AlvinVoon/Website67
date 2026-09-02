@@ -183,6 +183,16 @@ function parallelepipedFromPoints(A, B, C, D) {
 addSlideBtn.addEventListener('click', function () {
   const slide = document.createElement('div');
   slide.classList.add('blank-slide');
+  const img = document.createElement('img');
+  img.src="question8.jpg";
+  slide.appendChild(img);
+  const crossBtn = document.createElement('button');
+  crossBtn.textContent = 'X';
+  crossBtn.classList.add('cross-button');
+  crossBtn.addEventListener('click', function () {
+    slide.remove();
+  });
+  slide.appendChild(crossBtn);
   documentBody.append(slide);
 
 })
