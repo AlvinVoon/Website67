@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -87,7 +88,7 @@ canvas {
   box-shadow: 0 0.75rem 1.375rem rgba(125, 211, 252, 0.26);
 }
 
-#control-panel > div {
+#control-panel>div {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -95,7 +96,7 @@ canvas {
   padding: 0.25rem 0;
 }
 
-#control-panel > div label {
+#control-panel>div label {
   margin: 0;
   letter-spacing: 0;
   text-transform: none;
@@ -123,7 +124,8 @@ canvas {
   box-shadow: 0 0.875rem 1.625rem rgba(15, 23, 42, 0.22);
 }
 
-.previousBtn, .forwardBtn {
+.previousBtn,
+.forwardBtn {
   border-radius: 50%;
   width: 3.75rem;
   height: 3.75rem;
@@ -151,13 +153,23 @@ canvas {
 }
 
 .blank-slide {
-  width: 80%;
+  margin: 0 auto;
+  width: 90%;
   height: 85%;
   background-color: white;
   position: absolute;
   left: 0;
   top: 0;
   animation: slide-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  resize: both;
+  overflow: auto;
+}
+
+.blank-slide img {
+  width: 100%;
+  height: 100%;
+  /* Choose ONE behavior below: */
+  object-fit: cover;
 }
 
 @keyframes slide-in {
@@ -165,8 +177,24 @@ canvas {
     transform: translateX(120%);
     opacity: 0;
   }
+
   100% {
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+.cross-button{
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1.5rem;
+  line-height: 1.5rem;
+  text-align: center;
+  cursor: pointer;
 }

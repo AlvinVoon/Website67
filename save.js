@@ -16,10 +16,40 @@ const db = getFirestore(app);
 
 const savedDocRef = () => doc(db, "collections", "saved");
 
+const encodeForFirestore = (value) => {
+  if (Array.isArray(value)) {
+    return {
+      __type: "array",
+      items: value.map(encodeForFirestore)
+    };
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, encodeForFirestore(nestedValue)])
+    );
+  }
+  return value;
+};
+
+const decodeFromFirestore = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(decodeFromFirestore);
+  }
+  if (value && typeof value === "object") {
+    if (value.__type === "array" && Array.isArray(value.items)) {
+      return value.items.map(decodeFromFirestore);
+    }
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, decodeFromFirestore(nestedValue)])
+    );
+  }
+  return value;
+};
+
 const saveAll = async (savedArray) => {
   try {
     await setDoc(savedDocRef(), {
-      saved: savedArray,
+      saved: savedArray.map(encodeForFirestore),
       updatedAt: new Date()
     });
     console.log("Saved list written to Firestore");
@@ -32,7 +62,11 @@ const loadAll = async () => {
   try {
     const snap = await getDoc(savedDocRef());
     if (snap.exists()) {
-      return snap.data().saved ?? [];
+      const savedData = snap.data().saved;
+      if (Array.isArray(savedData)) {
+        return savedData.map(decodeFromFirestore);
+      }
+      return typeof savedData === "string" ? JSON.parse(savedData) : [];
     }
     return [];
   } catch (e) {
