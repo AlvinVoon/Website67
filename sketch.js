@@ -69,6 +69,31 @@ const volumeOutput = document.querySelector('#volumeOutput');
 let pointA, pointB, pointC, pointD;
 let boxEdges = null; // { AB, AC, AD, volume }, or null
 
+// Scale used for both the wireframe and the face fill so they always match.
+const BOX_SCALE = 60;
+
+// Animator function for the real parallelepiped (rebuilt whenever the
+// points change), or null when there's no box to draw.
+let boxAnimator = null;
+
+function updateBoxAnimator() {
+  if (!boxEdges) {
+    boxAnimator = null;
+    return;
+  }
+  const scaledAB = p5.Vector.mult(boxEdges.AB, BOX_SCALE);
+  const scaledAC = p5.Vector.mult(boxEdges.AC, BOX_SCALE);
+  const scaledAD = p5.Vector.mult(boxEdges.AD, BOX_SCALE);
+  const base = p5.Vector.mult(pointA, BOX_SCALE);
+
+  boxAnimator = makeParallelepipedAnimator(
+    scaledAB, scaledAC, scaledAD,
+    color(0, 255, 255),
+    base.x, base.y, base.z,
+    230 // ms per edge — tweak to taste
+  );
+}
+
 function applyPointParameters() {
   pointA = createVector(Number(pAx.value), Number(pAy.value), Number(pAz.value));
   pointB = createVector(Number(pBx.value), Number(pBy.value), Number(pBz.value));
@@ -77,6 +102,8 @@ function applyPointParameters() {
 
   boxEdges = parallelepipedFromPoints(pointA, pointB, pointC, pointD);
   volumeOutput.textContent = `Volume: ${boxEdges.volume.toFixed(3)}`;
+
+  updateBoxAnimator(); // rebuild animator so it replays whenever inputs change
 }
 
 [pAx, pAy, pAz, pBx, pBy, pBz, pCx, pCy, pCz, pDx, pDy, pDz]
@@ -137,6 +164,65 @@ function drawParallelepiped(a, b, c, colour, baseX = 0, baseY = 0, baseZ = 0) {
     );
   }
   pop();
+}
+
+// Returns a render function that, when called every draw() frame, draws
+// however many edges have "unlocked" so far (advancing one edge every
+// `delay` ms). This lets the shape animate in without fighting the
+// background()-clearing draw loop.
+function makeParallelepipedAnimator(a, b, c, colour, baseX = 0, baseY = 0, baseZ = 0, delay = 150) {
+  const verts = [
+    { x: 0, y: 0, z: 0 },
+    { x: a.x, y: a.y, z: a.z ?? 0 },
+    { x: b.x, y: b.y, z: b.z ?? 0 },
+    { x: c.x, y: c.y, z: c.z ?? 0 },
+    { x: a.x + b.x, y: a.y + b.y, z: (a.z ?? 0) + (b.z ?? 0) },
+    { x: a.x + c.x, y: a.y + c.y, z: (a.z ?? 0) + (c.z ?? 0) },
+    { x: b.x + c.x, y: b.y + c.y, z: (b.z ?? 0) + (c.z ?? 0) },
+    { x: a.x + b.x + c.x, y: a.y + b.y + c.y, z: (a.z ?? 0) + (b.z ?? 0) + (c.z ?? 0) }
+  ];
+
+  const edges = [
+    [0, 1], [0, 2], [0, 3],
+    [1, 4], [1, 5],
+    [2, 4], [2, 6],
+    [3, 5], [3, 6],
+    [4, 7], [5, 7], [6, 7]
+  ];
+
+  let visibleCount = 0;
+
+  // Advance one edge every `delay` ms
+  const timer = setInterval(() => {
+    if (visibleCount < edges.length) {
+      visibleCount++;
+    } else {
+      clearInterval(timer);
+    }
+  }, delay);
+
+  // Call this every draw() frame — it draws whatever edges are "unlocked" so far
+  const renderFrame = function () {
+    push();
+    strokeCap(ROUND);
+    stroke(colour);
+    strokeWeight(1.5);
+    noFill();
+
+    for (let k = 0; k < visibleCount; k++) {
+      const [i, j] = edges[k];
+      const p1 = verts[i];
+      const p2 = verts[j];
+      line(
+        baseX + p1.x, baseY + p1.y, baseZ + p1.z,
+        baseX + p2.x, baseY + p2.y, baseZ + p2.z
+      );
+    }
+    pop();
+  };
+
+  renderFrame.isComplete = () => visibleCount >= edges.length;
+  return renderFrame;
 }
 
 // Optional: fills each of the 6 faces of the parallelepiped semi-transparently,
@@ -281,6 +367,7 @@ function loadSavedEntry(entryIndex) {
     // This entry has no saved parallelepiped data — clear the stale display
     // instead of leaving the previous entry's volume showing.
     boxEdges = null;
+    boxAnimator = null;
     volumeOutput.textContent = 'Volume: —';
   }
 
@@ -525,9 +612,48 @@ function setup() {
   mainCam.setPosition(0, 0, 500);
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
+
+    let button = createButton('Export PDF');
+  button.position(10, 620);
+  button.mousePressed(() => exportPDF(canvas));
 }
 
 
+function exportPDF(canvasElement) {
+  let jsPDFLib;
+  if (window.jspdf && window.jspdf.jsPDF) {
+    jsPDFLib = window.jspdf.jsPDF; 
+  } else if (window.jsPDF) {
+    jsPDFLib = window.jsPDF; 
+  }
+
+  if (!jsPDFLib) {
+    alert("CRITICAL: The jsPDF library script tag is missing from index.html!");
+    return;
+  }
+
+  // 3. Get the dynamic width and height from your current canvas
+  let canvasWidth = canvasElement.width;
+  let canvasHeight = canvasElement.height;
+
+  // 4. Set the orientation based on your screen aspect ratio
+  // If the screen is wider than it is tall, use Landscape ("l"), otherwise Portrait ("p")
+  let orientation = canvasWidth > canvasHeight ? "l" : "p";
+
+  // 5. Initialize the PDF with the dynamic format [width, height] in points
+  let doc = new jsPDFLib({
+    orientation: orientation,
+    unit: "pt",
+    format: [canvasWidth, canvasHeight]
+  });
+
+  // Convert the current canvas to a high-quality JPEG data URL
+  let imgData = canvasElement.elt.toDataURL("image/jpeg", 1.0);
+  
+  // 6. Draw the image into the PDF using the dynamic dimensions
+  doc.addImage(imgData, "JPEG", 0, 0, canvasWidth, canvasHeight);
+  doc.save("fullscreen-p5-export.pdf");
+}
 let R;
 let RHeading;
 function addVector() {
@@ -649,6 +775,7 @@ deleteBtn.addEventListener('click', function () {
     projVector = null;
     crossVector = null;
     boxEdges = null;
+    boxAnimator = null;
     volumeOutput.textContent = 'Volume: —';
     showVectorC = true;
   } else {
@@ -709,8 +836,8 @@ function draw() {
     updateCameraAnimation();
   }
 
-  //  lights();
-  // normalMaterial();
+ //   lights();
+ //  normalMaterial();
   //model(myModel);
 
   // addLine (1,4,3,3,3,0, 10);
@@ -749,17 +876,24 @@ function draw() {
   if (C != null && showVectorC) {
     drawVector(C, color(255, 165, 0), 0, 0, 'C', vector3Heading.value, 1, 'C-connected', 0, 0, 0);
   }
-const SCALE = 60;
 
-if (boxEdges != null) {
-  const scaledAB = p5.Vector.mult(boxEdges.AB, SCALE);
-  const scaledAC = p5.Vector.mult(boxEdges.AC, SCALE);
-  const scaledAD = p5.Vector.mult(boxEdges.AD, SCALE);
-  const base = p5.Vector.mult(pointA, SCALE);
+  if (boxEdges != null) {
+    const scaledAB = p5.Vector.mult(boxEdges.AB, BOX_SCALE);
+    const scaledAC = p5.Vector.mult(boxEdges.AC, BOX_SCALE);
+    const scaledAD = p5.Vector.mult(boxEdges.AD, BOX_SCALE);
+    const base = p5.Vector.mult(pointA, BOX_SCALE);
 
-  drawParallelepiped(scaledAB, scaledAC, scaledAD, color(0, 255, 255), base.x, base.y, base.z);
-  fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
-}
+    // Draw every currently unlocked edge before filling any faces.
+    if (boxAnimator) {
+      boxAnimator();
+    }
+
+    // Wait until the animated wireframe has finished before filling faces.
+    if (!boxAnimator || boxAnimator.isComplete()) {
+      fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
+    }
+  }
+
   getCameraOrientation();
 }
 
