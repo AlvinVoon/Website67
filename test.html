@@ -21,8 +21,9 @@
 </head>
 
 <body>
-  <h4 class="version">V1.1.2</h4>
+  <h4 class="version">V1.1.3</h4>
   <div class="questionText" contenteditable="true">Hello world</div>
+  <div class="katexText" aria-live="polite"></div>
 
   <div class="previousBtn"></div>
   <div class="forwardBtn"></div>
@@ -39,6 +40,9 @@
     <button id="save" type="button">Save</button>
     <button id="deleteSaved" type="button">Delete Saved</button>
     <button id="reset" type="button">Reset</button>
+
+    <label for="katexInput">KaTeX text</label>
+    <textarea id="katexInput" name="katexText" rows="8" placeholder="One equation per line, e.g. \frac{a}{b}" autocomplete="off"></textarea>
 
     <label for="vector1heading">Vector 1 (heading):</label>
     <input type="number" id="vector1heading" name="Vector1heading" min="-100" max="100" step="1" value="1">

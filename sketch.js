@@ -13,6 +13,8 @@ let BBase = [];
 
 let saved;
 
+let pdfPages = [];
+
 let operation;
 
 let index = -1;
@@ -59,6 +61,8 @@ const observerA = document.querySelector('#observerA');
 const observerB = document.querySelector('#observerB');
 
 const questionTextbox = document.querySelector('.questionText');
+const katexInput = document.querySelector('#katexInput');
+const katexTextbox = document.querySelector('.katexText');
 
 const pAx = document.querySelector('#pAx'), pAy = document.querySelector('#pAy'), pAz = document.querySelector('#pAz');
 const pBx = document.querySelector('#pBx'), pBy = document.querySelector('#pBy'), pBz = document.querySelector('#pBz');
@@ -93,17 +97,52 @@ function updateBoxAnimator() {
     230 // ms per edge — tweak to taste
   );
 }
+const POSITION_VECTOR_SCALE = BOX_SCALE; // 60, defined earlier in your file
 
+function drawPositionVector(point, colour) {
+  if (!point) return;
+  const scaled = p5.Vector.mult(point, POSITION_VECTOR_SCALE);
+
+  push();
+  strokeCap(ROUND);
+  stroke(colour);
+  strokeWeight(2.5);
+  line(0, 0, 0, scaled.x, scaled.y, scaled.z);
+  pop();
+
+  push();
+  translate(scaled.x, scaled.y, scaled.z);
+  noStroke();
+  fill(colour);
+  sphere(4);
+  pop();
+}
+
+// Plots A, B, C as position vectors from the origin.
+function drawPositionVectorsABC() {
+  drawPositionVector(pointA, color(255, 0, 0));   // A - red
+  drawPositionVector(pointB, color(0, 255, 0));   // B - green
+  drawPositionVector(pointC, color(0, 150, 255)); // C - blue
+}
 function applyPointParameters() {
   pointA = createVector(Number(pAx.value), Number(pAy.value), Number(pAz.value));
   pointB = createVector(Number(pBx.value), Number(pBy.value), Number(pBz.value));
   pointC = createVector(Number(pCx.value), Number(pCy.value), Number(pCz.value));
-  pointD = createVector(Number(pDx.value), Number(pDy.value), Number(pDz.value));
 
-  boxEdges = parallelepipedFromPoints(pointA, pointB, pointC, pointD);
-  volumeOutput.textContent = `Volume: ${boxEdges.volume.toFixed(3)}`;
+  const dValues = [pDx, pDy, pDz].map(input => Number(input.value));
+  const hasPointD = !dValues.every(v => v === 0);
 
-  updateBoxAnimator(); // rebuild animator so it replays whenever inputs change
+  if (hasPointD) {
+    pointD = createVector(dValues[0], dValues[1], dValues[2]);
+    boxEdges = parallelepipedFromPoints(pointA, pointB, pointC, pointD);
+    volumeOutput.textContent = `Volume: ${boxEdges.volume.toFixed(3)}`;
+    updateBoxAnimator(); // rebuild animator so it replays whenever inputs change
+  } else {
+    pointD = null;
+    boxEdges = null;
+    boxAnimator = null;
+    volumeOutput.textContent = 'Volume: —';
+  }
 }
 
 [pAx, pAy, pAz, pBx, pBy, pBz, pCx, pCy, pCz, pDx, pDy, pDz]
@@ -230,7 +269,7 @@ function makeParallelepipedAnimator(a, b, c, colour, baseX = 0, baseY = 0, baseZ
 // solid look, or instead of it if you don't want the wireframe.
 function fillParallelepipedFaces(a, b, c, fillColour, baseX = 0, baseY = 0, baseZ = 0) {
   const az = a.z ?? 0, bz = b.z ?? 0, cz = c.z ?? 0;
-  const O  = { x: 0, y: 0, z: 0 };
+  const O = { x: 0, y: 0, z: 0 };
   const A_ = { x: a.x, y: a.y, z: az };
   const B_ = { x: b.x, y: b.y, z: bz };
   const C_ = { x: c.x, y: c.y, z: cz };
@@ -270,7 +309,12 @@ addSlideBtn.addEventListener('click', function () {
   const slide = document.createElement('div');
   slide.classList.add('blank-slide');
   const img = document.createElement('img');
-  img.src="question8.jpg";
+  if (index == 2) {
+      img.src = "question2.jpg";
+  }
+  else if (index == 7) {
+      img.src = "question6(a).jpg";
+  }
   slide.appendChild(img);
   const crossBtn = document.createElement('button');
   crossBtn.textContent = 'X';
@@ -340,6 +384,8 @@ function loadSavedEntry(entryIndex) {
 
   const metadataIndex = hasVector3 ? 3 : 2;
   questionTextbox.innerText = entry[metadataIndex] ?? 'No saved entries';
+  katexInput.value = typeof entry[metadataIndex + 4] === 'string' ? entry[metadataIndex + 4] : '';
+  renderKatexText();
 
   operation = entry[metadataIndex + 1] ?? 0;
   R = null;
@@ -398,6 +444,7 @@ forwardBtn.addEventListener('mouseleave', function () {
 forwardBtn.addEventListener('click', function () {
   if (index < saved.length - 1) {
     loadSavedEntry(index + 1);
+    console.log(index);
   } else {
     applyCurrentOperation();
   }
@@ -438,7 +485,8 @@ saveBtn.addEventListener('click', function () {
       [Number(pCx.value), Number(pCy.value), Number(pCz.value)],
       [Number(pDx.value), Number(pDy.value), Number(pDz.value)]
     ],
-    boxEdges?.volume ?? 0
+    boxEdges?.volume ?? 0,
+    katexInput.value,
   ]);
   index = saved.length - 1;
 
@@ -598,7 +646,7 @@ function setup() {
   const canvasContainer = document.getElementById('canvas-container') || document.body;
   canvas.parent(canvasContainer);
 
-    applyVectorParameters();
+  applyVectorParameters();
   applyPointParameters();
   // create one reusable overlay div, absolutely positioned
   mathDiv = createDiv('');
@@ -613,18 +661,30 @@ function setup() {
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
 
-    let button = createButton('Export PDF');
-  button.position(10, 620);
-  button.mousePressed(() => exportPDF(canvas));
+ // let button = createButton('Export PDF');
+ // button.position(10, 620);
+ // button.mousePressed(() => exportPDF(canvas));
+
+ // let addPdfPageButton = createButton('Add PDF Page');
+  //addPdfPageButton.position(10, 580);
+ // addPdfPageButton.mousePressed(() => addPDFPage(canvas));
 }
 
+
+function addPDFPage(canvasElement) {
+  pdfPages.push({
+    image: canvasElement.elt.toDataURL("image/jpeg", 1.0),
+    width: canvasElement.width,
+    height: canvasElement.height
+  });
+}
 
 function exportPDF(canvasElement) {
   let jsPDFLib;
   if (window.jspdf && window.jspdf.jsPDF) {
-    jsPDFLib = window.jspdf.jsPDF; 
+    jsPDFLib = window.jspdf.jsPDF;
   } else if (window.jsPDF) {
-    jsPDFLib = window.jsPDF; 
+    jsPDFLib = window.jsPDF;
   }
 
   if (!jsPDFLib) {
@@ -632,9 +692,15 @@ function exportPDF(canvasElement) {
     return;
   }
 
-  // 3. Get the dynamic width and height from your current canvas
-  let canvasWidth = canvasElement.width;
-  let canvasHeight = canvasElement.height;
+  const pages = pdfPages.length > 0 ? pdfPages : [{
+    image: canvasElement.elt.toDataURL("image/jpeg", 1.0),
+    width: canvasElement.width,
+    height: canvasElement.height
+  }];
+
+  // Use the dimensions of the first captured page for the PDF page format.
+  let canvasWidth = pages[0].width;
+  let canvasHeight = pages[0].height;
 
   // 4. Set the orientation based on your screen aspect ratio
   // If the screen is wider than it is tall, use Landscape ("l"), otherwise Portrait ("p")
@@ -647,11 +713,13 @@ function exportPDF(canvasElement) {
     format: [canvasWidth, canvasHeight]
   });
 
-  // Convert the current canvas to a high-quality JPEG data URL
-  let imgData = canvasElement.elt.toDataURL("image/jpeg", 1.0);
-  
-  // 6. Draw the image into the PDF using the dynamic dimensions
-  doc.addImage(imgData, "JPEG", 0, 0, canvasWidth, canvasHeight);
+  pages.forEach((page, pageIndex) => {
+    if (pageIndex > 0) {
+      doc.addPage([page.width, page.height], page.width > page.height ? "l" : "p");
+    }
+    doc.addImage(page.image, "JPEG", 0, 0, page.width, page.height);
+  });
+
   doc.save("fullscreen-p5-export.pdf");
 }
 let R;
@@ -672,7 +740,7 @@ addBtn.addEventListener('click', addVector);
 function applyVectorParameters() {
   A = angleDrawer(vector1Heading.value, vector1Length.value, Number(vector1Z.value));
   B = angleDrawer(vector2Heading.value, vector2Length.value, Number(vector2Z.value));
-    C = angleDrawer(vector3Heading.value, vector3Length.value, Number(vector3Z.value));
+  C = angleDrawer(vector3Heading.value, vector3Length.value, Number(vector3Z.value));
 }
 
 function applyCurrentOperation() {
@@ -717,11 +785,13 @@ resetBtn.addEventListener('click', function () {
   crossVector = null;
   index = -1;
   showVectorC = true;
+  katexInput.value = '';
+  renderKatexText();
   applyVectorParameters();
-    pAx.value = 0; pAy.value = 0; pAz.value = 0;
-  pBx.value = 1; pBy.value = 0; pBz.value = 0;
-  pCx.value = 0; pCy.value = 1; pCz.value = 0;
-  pDx.value = 0; pDy.value = 0; pDz.value = 1;
+  pAx.value = 0; pAy.value = 0; pAz.value = 0;
+  pBx.value = 0; pBy.value = 0; pBz.value = 0;
+  pCx.value = 0; pCy.value = 0; pCz.value = 0;
+  pDx.value = ''; pDy.value = ''; pDz.value = '';
   applyPointParameters();
 });
 
@@ -741,7 +811,9 @@ function crossVectorOperation() {
   crossVector = p5.Vector.cross(A.copy(), B.copy());
   console.log(crossVector);
 }
+
 crossProductBtn.addEventListener('click', crossVectorOperation);
+
 function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
   if (!canvas) return; // Guard against canvas not being initialized yet
   const canvasBounds = canvas.elt.getBoundingClientRect();
@@ -751,6 +823,21 @@ function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
   mathDiv.style('color', color);
   mathDiv.style('font-size', fontSize + 'px');
 }
+
+function renderKatexText() {
+  if (!katexTextbox || typeof katex === 'undefined') return;
+  katexTextbox.textContent = '';
+  katexInput.value.split(/\r?\n/).forEach((formula) => {
+    if (!formula.trim()) return;
+    const line = document.createElement('div');
+    katex.render(formula.trim(), line, { throwOnError: false, displayMode: true });
+    katexTextbox.append(line);
+  });
+}
+
+katexInput.addEventListener('input', renderKatexText);
+
+
 
 deleteBtn.addEventListener('click', function () {
   if (index < 0 || !saved[index]) return; // nothing loaded to delete
@@ -770,6 +857,8 @@ deleteBtn.addEventListener('click', function () {
   if (saved.length === 0) {
     index = -1;
     questionTextbox.innerText = 'No saved entries';
+    katexInput.value = '';
+    renderKatexText();
     operation = 0;
     R = null;
     projVector = null;
@@ -817,6 +906,17 @@ window.addEventListener('keyup', (event) => {
   }
 });
 
+function fillTriangleABC(fillColour = color(255, 165, 0, 80)) {
+  if (!pointA || !pointB || !pointC) return;
+
+  const a = p5.Vector.mult(pointA, POSITION_VECTOR_SCALE);
+  const b = p5.Vector.mult(pointB, POSITION_VECTOR_SCALE);
+  const c = p5.Vector.mult(pointC, POSITION_VECTOR_SCALE);
+
+  // Semi-transparent fill, plus a thin outline so the triangle edges read clearly
+  drawTriangle3D(a, b, c, fillColour, color(255, 165, 0), 0, 0, 0);
+}
+
 function draw() {
   background(0);
 
@@ -836,8 +936,9 @@ function draw() {
     updateCameraAnimation();
   }
 
- //   lights();
- //  normalMaterial();
+  //addText(String.raw`\left\|(\mathbf{i}-\mathbf{j}+2\mathbf{k})\cdot\left[(3\mathbf{j}-\mathbf{k}) \times(3\mathbf{i}-4\mathbf{j}+\mathbf{k})\right]\right\|`, '#FFFF00', -50, -50, 20);
+  //   lights();
+  //  normalMaterial();
   //model(myModel);
 
   // addLine (1,4,3,3,3,0, 10);
@@ -883,16 +984,19 @@ function draw() {
     const scaledAD = p5.Vector.mult(boxEdges.AD, BOX_SCALE);
     const base = p5.Vector.mult(pointA, BOX_SCALE);
 
-    // Draw every currently unlocked edge before filling any faces.
     if (boxAnimator) {
       boxAnimator();
     }
 
-    // Wait until the animated wireframe has finished before filling faces.
     if (!boxAnimator || boxAnimator.isComplete()) {
       fillParallelepipedFaces(scaledAB, scaledAC, scaledAD, color(0, 255, 255, 40), base.x, base.y, base.z);
     }
+  } else {
+      drawPositionVectorsABC();
+    fillTriangleABC();
   }
+
+
 
   getCameraOrientation();
 }
