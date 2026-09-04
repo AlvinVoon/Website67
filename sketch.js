@@ -79,9 +79,17 @@ function resizeCanvasToContainer() {
   resizeCanvas(canvasContainer.clientWidth - panelWidth, canvasContainer.clientHeight);
 }
 
+const katexText = document.querySelector('.katexText');
+
 expandBtn.addEventListener('click', function () {
   console.log('expand button clicked');
   controlPanel.classList.toggle('closed');
+  if (controlPanel.classList.contains('closed')) {
+    katexText.style.right= '2rem';
+  }
+  else {
+    katexText.style.right = '23.125rem';
+  }
   resizeCanvasToContainer();
 });
 
