@@ -23,6 +23,7 @@ let index = -1;
 // currently-loaded entry (or the live/unsaved state) actually has vector3 data.
 let showVectorC = true;
 
+const controlPanel = document.querySelector('#control-panel');
 let animatedList = [];
 const cameraX = document.querySelector('#cameraX');
 const cameraY = document.querySelector('#cameraY');
@@ -69,6 +70,20 @@ const pBx = document.querySelector('#pBx'), pBy = document.querySelector('#pBy')
 const pCx = document.querySelector('#pCx'), pCy = document.querySelector('#pCy'), pCz = document.querySelector('#pCz');
 const pDx = document.querySelector('#pDx'), pDy = document.querySelector('#pDy'), pDz = document.querySelector('#pDz');
 const volumeOutput = document.querySelector('#volumeOutput');
+
+const expandBtn = document.querySelector('.expandBtn');
+
+function resizeCanvasToContainer() {
+  const canvasContainer = document.getElementById('canvas-container') || document.body;
+  const panelWidth = controlPanel.classList.contains('closed') ? 0 : controlPanel.offsetWidth;
+  resizeCanvas(canvasContainer.clientWidth - panelWidth, canvasContainer.clientHeight);
+}
+
+expandBtn.addEventListener('click', function () {
+  console.log('expand button clicked');
+  controlPanel.classList.toggle('closed');
+  resizeCanvasToContainer();
+});
 
 let pointA, pointB, pointC, pointD;
 let boxEdges = null; // { AB, AC, AD, volume }, or null
@@ -305,6 +320,16 @@ function parallelepipedFromPoints(A, B, C, D) {
   return { AB, AC, AD, volume };
 }
 
+function randomFunctionJustToCheckIndex(){
+  console.log('hello'+ index, '?')
+  if (index == 2 || index == 7 || index == 10) {
+      quickSettingPanel.style.display = 'flex';
+  }
+  else {
+    quickSettingPanel.style.display = 'none';
+  }
+}
+const quickSettingPanel = document.querySelector('.quickSetting');
 addSlideBtn.addEventListener('click', function () {
   const slide = document.createElement('div');
   slide.classList.add('blank-slide');
@@ -314,6 +339,9 @@ addSlideBtn.addEventListener('click', function () {
   }
   else if (index == 7) {
       img.src = "question6(a).jpg";
+  }
+  else if (index == 10) {
+    img.src = "question8.jpg";
   }
   slide.appendChild(img);
   const crossBtn = document.createElement('button');
@@ -429,6 +457,7 @@ function loadSavedEntry(entryIndex) {
 previousBtn.addEventListener('click', function () {
   if (index > 0) {
     loadSavedEntry(index - 1);
+    randomFunctionJustToCheckIndex();
   }
 });
 
@@ -444,6 +473,7 @@ forwardBtn.addEventListener('mouseleave', function () {
 forwardBtn.addEventListener('click', function () {
   if (index < saved.length - 1) {
     loadSavedEntry(index + 1);
+    randomFunctionJustToCheckIndex();
     console.log(index);
   } else {
     applyCurrentOperation();
@@ -642,8 +672,9 @@ function preload() {
 }
 
 function setup() {
-  canvas = createCanvas(windowWidth - 145, windowHeight, WEBGL);
   const canvasContainer = document.getElementById('canvas-container') || document.body;
+  const panelWidth = controlPanel.classList.contains('closed') ? 0 : controlPanel.offsetWidth;
+  canvas = createCanvas(canvasContainer.clientWidth - panelWidth, canvasContainer.clientHeight, WEBGL);
   canvas.parent(canvasContainer);
 
   applyVectorParameters();
@@ -937,10 +968,20 @@ function draw() {
   }
 
   //addText(String.raw`\left\|(\mathbf{i}-\mathbf{j}+2\mathbf{k})\cdot\left[(3\mathbf{j}-\mathbf{k}) \times(3\mathbf{i}-4\mathbf{j}+\mathbf{k})\right]\right\|`, '#FFFF00', -50, -50, 20);
-  //   lights();
-  //  normalMaterial();
-  //model(myModel);
+  if (index==0){
 
+
+  }
+  //push();
+  //lights();
+    //normalMaterial();
+      //  translate(200, 0, 20);
+    
+    // 4. ROTATION: Rotate on desired axes
+  //  rotateX(80);
+  //  rotateY(50);
+ // model(myModel);
+ // pop();
   // addLine (1,4,3,3,3,0, 10);
   drawGround(0, 0, 0, 30);
   drawAxis(0, 0, 0, 200);

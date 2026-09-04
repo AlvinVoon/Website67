@@ -21,12 +21,18 @@
 </head>
 
 <body>
-  <h4 class="version">V1.1.3</h4>
+  <h4 class="version">V1.1.4</h4>
   <div class="questionText" contenteditable="true">Hello world</div>
   <div class="katexText" aria-live="polite"></div>
 
   <div class="previousBtn"></div>
   <div class="forwardBtn"></div>
+  <div class="expandBtn">=</div>
+
+  <div class="quickSetting">
+        <button id="addSlide">Slide Available</button>
+       <div id="volumeOutput"></div>
+  </div>
   <div id="control-panel" class="list">
     <label for="cameraX">Camera X</label>
     <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
@@ -70,7 +76,6 @@
         type="number" value="0"></label>
     <label>D <input id="pDx" type="number" value="0"><input id="pDy" type="number" value="0"><input id="pDz"
         type="number" value="0"></label>
-    <div id="volumeOutput"></div>
     <div>
       <label for="observerA">A as Observer</label>
       <input type="checkbox" id="observerA" name="observerA" value="observerA">
@@ -82,7 +87,6 @@
     <button id="addOperater">Add the two vectors</button>
     <button id="dotOperater">Dot product of the two vectors</button>
     <button id="crossOperater">Cross product of the two vectors</button>
-    <button id="addSlide">Slide Blank Slide</button>
   </div>
 
   <script src="https://kit.fontawesome.com/87e6eea42a.js" crossorigin="anonymous"></script>
