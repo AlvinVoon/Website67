@@ -23,6 +23,7 @@ let index = -1;
 // currently-loaded entry (or the live/unsaved state) actually has vector3 data.
 let showVectorC = true;
 
+const handToggle = document.querySelector('.toggleHand');
 const controlPanel = document.querySelector('#control-panel');
 let animatedList = [];
 const cameraX = document.querySelector('#cameraX');
@@ -31,9 +32,17 @@ const cameraZ = document.querySelector('#cameraZ');
 const keyFrameBtn = document.querySelector('#keyframe');
 const playBtn = document.querySelector('#play');
 const saveBtn = document.querySelector('#save');
+const saveHandRotationBtn = document.querySelector('#saveHandRotation');
 const deleteBtn = document.querySelector('#deleteSaved');
 const resetBtn = document.querySelector('#reset');
 const addSlideBtn = document.querySelector('#addSlide');
+const handRotateX = document.querySelector('#handRotateX');
+const handRotateY = document.querySelector('#handRotateY');
+const handRotateZ = document.querySelector('#handRotateZ');
+const handRotateXValue = document.querySelector('#handRotateXValue');
+const handRotateYValue = document.querySelector('#handRotateYValue');
+const handRotateZValue = document.querySelector('#handRotateZValue');
+const handRotation = { x: 0, y: 0, z: 0 };
 
 const documentBody = document.querySelector('body');
 
@@ -103,6 +112,42 @@ const BOX_SCALE = 60;
 // points change), or null when there's no box to draw.
 let boxAnimator = null;
 
+let hand = false;
+handToggle.addEventListener('click', function () {
+  hand = !hand;
+  handToggle.classList.toggle('is-active', hand);
+})
+
+function updateHandRotation(axis, slider, output) {
+  handRotation[axis] = Number(slider.value);
+  output.value = slider.value;
+  output.textContent = slider.value;
+  console.log('Hand rotation:', { ...handRotation });
+}
+
+function setHandRotation(rotation) {
+  const values = {
+    x: Number(rotation?.x) || 0,
+    y: Number(rotation?.y) || 0,
+    z: Number(rotation?.z) || 0
+  };
+  handRotation.x = values.x;
+  handRotation.y = values.y;
+  handRotation.z = values.z;
+  handRotateX.value = values.x;
+  handRotateY.value = values.y;
+  handRotateZ.value = values.z;
+  handRotateXValue.value = values.x;
+  handRotateYValue.value = values.y;
+  handRotateZValue.value = values.z;
+  handRotateXValue.textContent = values.x;
+  handRotateYValue.textContent = values.y;
+  handRotateZValue.textContent = values.z;
+}
+
+handRotateX.addEventListener('input', () => updateHandRotation('x', handRotateX, handRotateXValue));
+handRotateY.addEventListener('input', () => updateHandRotation('y', handRotateY, handRotateYValue));
+handRotateZ.addEventListener('input', () => updateHandRotation('z', handRotateZ, handRotateZValue));
 function updateBoxAnimator() {
   if (!boxEdges) {
     boxAnimator = null;
@@ -387,7 +432,7 @@ previousBtn.addEventListener('mouseenter', function () {
 
 // Restore full opacity when mouse moves away
 previousBtn.addEventListener('mouseleave', function () {
-  previousBtn.style.opacity = '0.1';
+  previousBtn.style.opacity = '0.4';
 });
 
 function loadSavedEntry(entryIndex) {
@@ -422,6 +467,7 @@ function loadSavedEntry(entryIndex) {
   questionTextbox.innerText = entry[metadataIndex] ?? 'No saved entries';
   katexInput.value = typeof entry[metadataIndex + 4] === 'string' ? entry[metadataIndex + 4] : '';
   renderKatexText();
+  setHandRotation(entry[metadataIndex + 5]);
 
   operation = entry[metadataIndex + 1] ?? 0;
   R = null;
@@ -475,7 +521,7 @@ forwardBtn.addEventListener('mouseenter', function () {
 
 // Restore full opacity when mouse moves away
 forwardBtn.addEventListener('mouseleave', function () {
-  forwardBtn.style.opacity = '0.1';
+  forwardBtn.style.opacity = '0.4';
 });
 
 forwardBtn.addEventListener('click', function () {
@@ -525,6 +571,7 @@ saveBtn.addEventListener('click', function () {
     ],
     boxEdges?.volume ?? 0,
     katexInput.value,
+    { ...handRotation },
   ]);
   index = saved.length - 1;
 
@@ -538,6 +585,27 @@ saveBtn.addEventListener('click', function () {
   if (window.firebaseFns) {
     window.firebaseFns.saveAll(saved);
   }
+});
+
+saveHandRotationBtn.addEventListener('click', function () {
+  if (index < 0 || !saved[index]) {
+    console.warn('Select a saved entry before saving hand rotation.');
+    return;
+  }
+
+  const metadataIndex = Array.isArray(saved[index][2]) ? 3 : 2;
+  saved[index][metadataIndex + 5] = { ...handRotation };
+
+  try {
+    localStorage.setItem('saved', JSON.stringify(saved));
+  } catch (error) {
+    console.error(error);
+  }
+
+  if (window.firebaseFns) {
+    window.firebaseFns.saveAll(saved);
+  }
+  console.log(`Saved hand rotation to index ${index}:`, { ...handRotation });
 });
 
 function createStuff(stuff) {
@@ -676,7 +744,8 @@ let canvas;
 let mathDiv;
 function preload() {
   font = loadFont('assets/Typographica-Blp5.ttf');
-  myModel = loadModel('assets/cup_lp.obj', true); // true = normalize size
+  myModel = loadModel('assets/axis.obj', true); // true = normalize size
+  //  imgTexture = loadImage('assets/material8.png');
 }
 
 function setup() {
@@ -700,11 +769,15 @@ function setup() {
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
 
- // let button = createButton('Export PDF');
- // button.position(10, 620);
- // button.mousePressed(() => exportPDF(canvas));
+  //let button = createButton('Export PDF');
+  //button.addClass('pdf-action export-pdf');
+  //button.attribute('aria-label', 'Export the current work as a PDF');
+  //button.position(10, 620);
+  //button.mousePressed(() => exportPDF(canvas));
 
- // let addPdfPageButton = createButton('Add PDF Page');
+  //let addPdfPageButton = createButton('Add PDF Page');
+  //addPdfPageButton.addClass('pdf-action add-pdf-page');
+  //addPdfPageButton.attribute('aria-label', 'Add the current work as a PDF page');
   //addPdfPageButton.position(10, 580);
  // addPdfPageButton.mousePressed(() => addPDFPage(canvas));
 }
@@ -980,16 +1053,29 @@ function draw() {
 
 
   }
-  //push();
-  //lights();
-    //normalMaterial();
-      //  translate(200, 0, 20);
+  if (hand && !(index > 1)){
+  push();
+    normalMaterial();
+      //  translate(0, 0, 0);
     
     // 4. ROTATION: Rotate on desired axes
-  //  rotateX(80);
-  //  rotateY(50);
- // model(myModel);
- // pop();
+      lights();
+      // ambientLight(100);
+      const baseHandRotation = index === 1
+        ? { x: -61, y: 0, z: 0 }
+        : index === 0
+          ? { x: -61, y: 0, z: -7 }
+          : { x: -61, y: 0, z: -7 };
+      // Apply the preset pose first, then rotate around the hand's local axes.
+      rotateX(baseHandRotation.x);
+      rotateY(baseHandRotation.y);
+      rotateZ(baseHandRotation.z);
+      rotateX(radians(handRotation.x));
+      rotateY(radians(handRotation.y));
+      rotateZ(radians(handRotation.z));
+  model(myModel);
+  pop();
+  }
   // addLine (1,4,3,3,3,0, 10);
   drawGround(0, 0, 0, 30);
   drawAxis(0, 0, 0, 200);

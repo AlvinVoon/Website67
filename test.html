@@ -29,11 +29,22 @@
   <div class="forwardBtn"></div>
   <div class="expandBtn">=</div>
 
+  <div class="toggleHand">Hand</div>
+
   <div class="quickSetting">
         <button id="addSlide">Slide Available</button>
        <div id="volumeOutput"></div>
   </div>
   <div id="control-panel" class="list closed">
+    <div class="hand-rotation-controls">
+      <h3>Hand Rotation</h3>
+      <label for="handRotateX">X axis <output id="handRotateXValue">0</output>&deg;</label>
+      <input type="range" id="handRotateX" name="handRotateX" min="-180" max="180" value="0" step="1">
+      <label for="handRotateY">Y axis <output id="handRotateYValue">0</output>&deg;</label>
+      <input type="range" id="handRotateY" name="handRotateY" min="-180" max="180" value="0" step="1">
+      <label for="handRotateZ">Z axis <output id="handRotateZValue">0</output>&deg;</label>
+      <input type="range" id="handRotateZ" name="handRotateZ" min="-180" max="180" value="0" step="1">
+    </div>
     <label for="cameraX">Camera X</label>
     <input type="range" id="cameraX" name="cameraX" min="-500" max="500" value="0" step="1">
     <label for="cameraY">Camera Y</label>
@@ -44,6 +55,7 @@
     <button id="keyframe" type="button">Key Frame</button>
     <button id="play" type="button">Play</button>
     <button id="save" type="button">Save</button>
+    <button id="saveHandRotation" type="button">Save Hand Rotation</button>
     <button id="deleteSaved" type="button">Delete Saved</button>
     <button id="reset" type="button">Reset</button>
 

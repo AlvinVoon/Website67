@@ -127,6 +127,35 @@ canvas {
   cursor: pointer;
 }
 
+.hand-rotation-controls {
+  display: block !important;
+  padding: 0.75rem !important;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  border-radius: 0.75rem;
+  background: rgba(30, 41, 59, 0.52);
+}
+
+.hand-rotation-controls h3 {
+  margin: 0 0 0.75rem;
+  color: #f8fbff;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hand-rotation-controls label {
+  display: flex !important;
+  justify-content: space-between;
+  margin: 0.5rem 0 0.25rem !important;
+  color: #dfeafe !important;
+  letter-spacing: 0.04em !important;
+}
+
+.hand-rotation-controls output {
+  color: #7dd3fc;
+  font-variant-numeric: tabular-nums;
+}
+
 #control-panel button {
   border: none;
   border-radius: 0.625rem;
@@ -188,10 +217,78 @@ canvas {
   background-color: white;
   position: absolute;
   bottom: 1.875rem;
-  opacity: 0.1;
+  opacity: 0.4;
   z-index:5;
 }
 
+.toggleHand,
+.pdf-action {
+  z-index: 7;
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 0.875rem;
+  background: rgba(8, 18, 32, 0.84);
+  color: #f7fbff;
+  font: 700 0.75rem/1.1 "Segoe UI", Tahoma, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0.75rem 1.5rem rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.toggleHand {
+  bottom: 1.875rem;
+  left: 8.125rem;
+  min-width: 7.5rem;
+}
+
+.toggleHand:hover,
+.pdf-action:hover {
+  background: rgba(18, 42, 66, 0.94);
+  border-color: rgba(125, 211, 252, 0.8);
+  box-shadow: 0 1rem 1.75rem rgba(2, 6, 23, 0.38), 0 0 0 3px rgba(125, 211, 252, 0.12);
+  transform: translateY(-2px);
+}
+
+.toggleHand.is-active {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  border-color: rgba(186, 230, 253, 0.95);
+  color: #ffffff;
+}
+
+.toggleHand:active,
+.pdf-action:active {
+  transform: translateY(0);
+}
+
+.pdf-action {
+  left: 1rem !important;
+  min-width: 9.5rem;
+}
+
+.add-pdf-page {
+  bottom: 7.25rem;
+}
+
+.export-pdf {
+  bottom: 3.125rem;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  border-color: rgba(254, 215, 170, 0.7);
+  color: #fffaf0;
+}
+
+.export-pdf:hover {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  border-color: rgba(255, 237, 213, 0.95);
+}
 .previousBtn {
   left: 3.125rem;
 }
