@@ -223,7 +223,7 @@ canvas {
 
 .toggleHand,
 .pdf-action {
-  z-index: 7;
+  z-index: 5;
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -247,7 +247,7 @@ canvas {
 .toggleHand {
   bottom: 1.875rem;
   left: 8.125rem;
-  min-width: 7.5rem;
+  min-width: 3.3rem;
 }
 
 .toggleHand:hover,
