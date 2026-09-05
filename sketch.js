@@ -822,7 +822,7 @@ function setup() {
 
 document.addEventListener('keydown', (event) => {
     // 3. Fix: Use " " for the spacebar
-    if (event.key === 'Shift') {
+    if (event.key === 'Alt') {
       addPDFPage(document.body);
     }
     if (event.key === 'Control'){
