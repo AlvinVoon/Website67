@@ -408,6 +408,44 @@ addSlideBtn.addEventListener('click', function () {
 
 })
 
+function initialTitleScreen () {
+  const slide = document.createElement('div');
+  slide.classList.add('blank-slide');
+  const img = document.createElement('img');
+  img.src = "title.jpg";
+  slide.appendChild(img);
+  documentBody.append(slide);
+  
+  return slide; // 1. Return the slide so it can be used outside
+}
+
+// 2. Store the returned element in a variable
+const titleSlide = initialTitleScreen();
+
+document.addEventListener('keydown', (event) => {
+    // 3. Fix: Use " " for the spacebar
+    if (event.key === ' ') {
+          titleSlide.remove(); 
+    }
+    console.log(event.key)
+  if (event.key === 'ArrowRight')
+  {
+      if (index < saved.length - 1) {
+    loadSavedEntry(index + 1);
+    randomFunctionJustToCheckIndex();
+    console.log(index);
+  } else {
+    applyCurrentOperation();
+  }
+  }
+  else if (event.key === 'ArrowLeft'){
+  if (index > 0) {
+    loadSavedEntry(index - 1);
+    randomFunctionJustToCheckIndex();
+  }
+  }
+});
+
 observerA.addEventListener('change', (event) => {
   if (event.target.checked) {
     observerB.checked = false;
