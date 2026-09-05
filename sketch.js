@@ -810,23 +810,39 @@ function setup() {
   //let button = createButton('Export PDF');
   //button.addClass('pdf-action export-pdf');
   //button.attribute('aria-label', 'Export the current work as a PDF');
-  //button.position(10, 620);
-  //button.mousePressed(() => exportPDF(canvas));
+ // button.position(10, 620);
+ // button.mousePressed(() => exportPDF(canvas));
 
   //let addPdfPageButton = createButton('Add PDF Page');
   //addPdfPageButton.addClass('pdf-action add-pdf-page');
   //addPdfPageButton.attribute('aria-label', 'Add the current work as a PDF page');
   //addPdfPageButton.position(10, 580);
- // addPdfPageButton.mousePressed(() => addPDFPage(canvas));
+ // addPdfPageButton.mousePressed(() => addPDFPage(document.body));
 }
 
-
-function addPDFPage(canvasElement) {
-  pdfPages.push({
-    image: canvasElement.elt.toDataURL("image/jpeg", 1.0),
-    width: canvasElement.width,
-    height: canvasElement.height
+document.addEventListener('keydown', (event) => {
+    // 3. Fix: Use " " for the spacebar
+    if (event.key === 'Shift') {
+      addPDFPage(document.body);
+    }
+    if (event.key === 'Control'){
+      exportPDF(canvas);
+    }
+});
+async function addPDFPage(targetElement = document.body) {
+  const canvas = await html2canvas(targetElement, {
+    useCORS: true,       // allow cross-origin images if any
+    scale: 2,            // higher = sharper output, bigger file size
+    backgroundColor: "#ffffff" // avoids transparent bg turning black in JPEG
   });
+
+  pdfPages.push({
+    image: canvas.toDataURL("image/jpeg", 1.0),
+    width: canvas.width,
+    height: canvas.height
+  });
+
+  console.log(pdfPages);
 }
 
 function exportPDF(canvasElement) {
