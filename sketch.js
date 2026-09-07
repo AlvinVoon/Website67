@@ -25,7 +25,7 @@ let showVectorC = true;
 
 const handToggle = document.querySelector('.toggleHand');
 const controlPanel = document.querySelector('#control-panel');
-let animatedList = [];
+let animatedList = [[-456, 0, 800, 2.621047628907613, 0, 0], [402, 0, 800, -2.621047628907613, 0, 0], [402, 0, -833, -0.4500666905467192, 0, 0], [-441, 0, -833, 0.4873534567241768, 0, 0]];
 const cameraX = document.querySelector('#cameraX');
 const cameraY = document.querySelector('#cameraY');
 const cameraZ = document.querySelector('#cameraZ');
@@ -361,6 +361,93 @@ function fillParallelepipedFaces(a, b, c, fillColour, baseX = 0, baseY = 0, base
   }
 }
 
+// ---- Idle-triggered looping camera playback ----
+
+let idlePlaybackTimeouts = [];
+let isIdlePlaying = false;
+
+// Cancels any pending/looping idle playback. Called the moment the user
+// interacts again (mouse move, click, key press, touch).
+function stopIdlePlayback() {
+  idlePlaybackTimeouts.forEach(id => clearTimeout(id));
+  idlePlaybackTimeouts = [];
+  isIdlePlaying = false;
+}
+
+// Runs the keyframe list once (same scheduling the Play button uses) and
+// calls onComplete after the last leg has had time to finish, so the
+// caller can chain another pass for looping.
+function playAnimatedListOnce(onComplete) {
+  const duration = 2400;
+
+  if (!animatedList || animatedList.length === 0) {
+    return;
+  }
+
+  for (let i = 0; i < animatedList.length; i++) {
+    const id = setTimeout(function () {
+      animateCameraTo(
+        { x: animatedList[i][0], y: animatedList[i][1], z: animatedList[i][2] },
+        { x: animatedList[i][3], y: animatedList[i][4], z: 0 },
+        duration
+      );
+    }, i * duration);
+    idlePlaybackTimeouts.push(id);
+  }
+
+  const totalTime = animatedList.length * duration + duration; // buffer for the final leg to finish
+  const completeId = setTimeout(() => {
+    if (onComplete) onComplete();
+  }, totalTime);
+  idlePlaybackTimeouts.push(completeId);
+}
+
+// Kicks off the idle animation and keeps looping it until stopIdlePlayback()
+// is called (i.e. until the user interacts again).
+function startIdleLoopPlayback() {
+  if (!animatedList || animatedList.length === 0) {
+    return;
+  }
+
+  isIdlePlaying = true;
+
+  function loopStep() {
+    if (!isIdlePlaying) return;
+    playAnimatedListOnce(loopStep);
+  }
+
+  loopStep();
+}
+
+let idleTimer;
+const idleLimit = 3500; // Time in milliseconds (5 seconds)
+
+function startIdleTimer() {
+  // Clear the old timer
+ // console.log('input again');
+  clearTimeout(idleTimer);
+
+  // Any fresh input means the user is back — stop the idle animation
+  // loop and hand control back to orbitControl() immediately.
+  if (isIdlePlaying) {
+    stopIdlePlayback();
+    camAnim = null;
+  }
+
+  // Start a new timer
+  idleTimer = setTimeout(() => {
+    console.log("No input for a while!");
+    startIdleLoopPlayback();
+  }, idleLimit);
+}
+
+// Listen for user actions
+window.onload = startIdleTimer;
+window.onmousemove = startIdleTimer;
+window.onmousedown = startIdleTimer;
+window.ontouchstart = startIdleTimer;
+window.onkeydown = startIdleTimer;
+
 function parallelepipedFromPoints(A, B, C, D) {
   const AB = createVector(B.x - A.x, B.y - A.y, B.z - A.z);
   const AC = createVector(C.x - A.x, C.y - A.y, C.z - A.z);
@@ -373,13 +460,21 @@ function parallelepipedFromPoints(A, B, C, D) {
   return { AB, AC, AD, volume };
 }
 
+const addSlide = document.querySelector('#addSlide');
+const volumeOutputDisplay = document.querySelector('#volumeOutput');
 function randomFunctionJustToCheckIndex(){
   console.log('hello'+ index, '?')
-  if (index == 2 || index == 7 || index == 10) {
-      quickSettingPanel.style.display = 'flex';
+  if (index == 2 || index == 7 || index == 10 ) {
+      addSlide.style.display = 'block';
   }
   else {
-    quickSettingPanel.style.display = 'none';
+    addSlide.style.display = 'none';
+  }
+  if (volumeOutput.textContent !== 'Volume: —'){
+    volumeOutputDisplay.style.display='block';
+  }
+  else {
+    volumeOutputDisplay.style.display='none';
   }
 }
 const quickSettingPanel = document.querySelector('.quickSetting');
@@ -820,15 +915,15 @@ function setup() {
  // addPdfPageButton.mousePressed(() => addPDFPage(document.body));
 }
 
-document.addEventListener('keydown', (event) => {
+//document.addEventListener('keydown', (event) => {
     // 3. Fix: Use " " for the spacebar
-    if (event.key === 'Alt') {
-      addPDFPage(document.body);
-    }
-    if (event.key === 'Control'){
-      exportPDF(canvas);
-    }
-});
+  //  if (event.key === 'Alt') {
+  //    addPDFPage(document.body);
+  //  }
+  //  if (event.key === 'Control'){
+  //    exportPDF(canvas);
+  //  }
+//});
 async function addPDFPage(targetElement = document.body) {
   const canvas = await html2canvas(targetElement, {
     useCORS: true,       // allow cross-origin images if any
@@ -992,6 +1087,11 @@ function addText(textGG, color, offsetX, offsetY, fontSize = 30) {
 
 function renderKatexText() {
   if (!katexTextbox || typeof katex === 'undefined') return;
+  if (katexInput.value.trim() === '') {
+    katexTextbox.style.display = 'none';
+    return;
+  }
+  katexTextbox.style.display = 'block';
   katexTextbox.textContent = '';
   katexInput.value.split(/\r?\n/).forEach((formula) => {
     if (!formula.trim()) return;

@@ -66,13 +66,21 @@ canvas {
 .quickSetting{
   position:absolute;
   bottom:1.5%;
-  display:none;
+  display:flex;
   flex-direction:row;
   gap:0.5rem;
   left:40vw;
   z-index:5;
 }
 
+#addSlide{
+  display: none;
+}
+#volumeOutput{
+  display: none;
+  font-weight:600;
+  font-size: medium;
+}
 .quickSetting button{
     border: none;
   border-radius: 0.625rem;
@@ -389,4 +397,5 @@ canvas {
   box-shadow: 0 0.875rem 1.625rem rgba(15, 23, 42, 0.22);
   overflow-y:auto;
   font-size:0.95rem;
+  display:none;
 }
