@@ -420,7 +420,7 @@ function startIdleLoopPlayback() {
 }
 
 let idleTimer;
-const idleLimit = 4000; // Time in milliseconds (5 seconds)
+const idleLimit = 4500; // Time in milliseconds (5 seconds)
 
 function startIdleTimer() {
   // Clear the old timer
