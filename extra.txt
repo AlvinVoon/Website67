@@ -1,0 +1,3 @@
+\vec{AB} = \vec{AO}+\vec{OB} =-\vec{OA}+\vec{OB} =-(2i+j-k)+3i+2k =-2i-j+k+3i+2k =i-j+3k \vec{AC}=\vec{AO}+\vec{OC} =-\vec{OA}+\vec{OC} =-(2i+j-k)+4i-2j+k =-2i-j+k+4i-2j+k =2i-3j+2k \vec{AD}=\vec{AO}+\vec{OD} =-\vec{OA}+\vec{OD} =-(2i+j-k)+5i-3j =-2i-j+k+5i-3j =3i-4j+k Volume=\lVert\vec{AB}\cdot(\vec{AC}\times\vec{AD})\rVert =\lVert i +j+3k\cdot((-1-4)i-(2-6)j+(-4-(-3))k)\rVert =\lVert i +j+3k\cdot(-5i+4j-k)\rVert =\lVert-5+4-3\rVert =\lVert -4 \rVert =4 \space cubic \space units
+
+Volume = \lVert\vec{AB}\cdot(\vec{AC}+\vec{AD})\rVert =\lVert i-j+2k\cdot(3j-k\times3i-4j+k)\rVert =\lVert i -j+2k\cdot((3-4)i-(3)j+(-9)k)\rVert =\lVert i -j+2k\cdot(-i-3j-9k)\rVert =\lVert -16\rVert =16 \space cubic\space units
