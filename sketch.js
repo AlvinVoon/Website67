@@ -405,7 +405,7 @@ function playAnimatedListOnce(onComplete) {
 // Kicks off the idle animation and keeps looping it until stopIdlePlayback()
 // is called (i.e. until the user interacts again).
 function startIdleLoopPlayback() {
-  if (!animatedList || animatedList.length === 0) {
+  if (index < 0 || !animatedList || animatedList.length === 0) {
     return;
   }
 
