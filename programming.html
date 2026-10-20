@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" type="text/css" href="programming.css">
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background-color: rgba(0, 0, 0, 0.734); font: 14px system-ui, sans-serif; }
+
+    #viewer { position: relative; width: 100%; height: 100%; overflow: hidden; }
+
+    /* Smooth camera motion */
+    #stage { position: absolute; top: 0; left: 0; transform-origin: 0 0;
+             transition: transform .9s cubic-bezier(.4, 0, .2, 1); }
+    #stage svg { display: block; max-width: none; }
+
+    /* Smooth highlight fade */
+    #stage svg * { transition: stroke .5s, stroke-width .5s; }
+
+    .panel { position: fixed; z-index: 10; background: rgba(255,255,255,.95);
+             border: 1px solid #888; border-radius: 8px; padding: 6px; }
+    button { border: 1px solid #888; border-radius: 6px; background: #fff;
+             cursor: pointer; padding: 6px 10px; font: inherit; }
+    button:hover { background: #eee; }
+
+    #tour { left: 50%; bottom: 16px; transform: translateX(-50%);
+            display: flex; gap: 6px; align-items: center; }
+    #count { min-width: 70px; text-align: center; color: #555; }
+
+    #nav { right: 16px; bottom: 16px; display: grid;
+           grid-template-columns: repeat(3, 40px); grid-auto-rows: 40px; gap: 6px; }
+    #nav button { padding: 0; font-size: 18px; }
+    #up { grid-column: 2; grid-row: 1; }
+    #left { grid-column: 1; grid-row: 2; }
+    #reset { grid-column: 2; grid-row: 2; }
+    #right { grid-column: 3; grid-row: 2; }
+    #down { grid-column: 2; grid-row: 3; }
+    #zoomOut { grid-column: 1; grid-row: 3; }
+    #zoomIn { grid-column: 3; grid-row: 3; }
+    body.recording .panel { display: none; }
+  </style>
+</head>
+<body>
+  <div id="viewer"><div id="stage"></div></div>
+
+  <div id="tour" class="panel">
+    <button id="prev">◀ Prev</button>
+    <span id="count">Overview</span>
+    <button id="next">Next ▶</button>
+    <button id="play">▶ Auto</button>
+    <button id="export">⏺ Export video</button>
+  </div>
+
+  <div id="nav" class="panel">
+    <button id="up">↑</button>
+    <button id="left">←</button>
+    <button id="reset" title="Overview">⟲</button>
+    <button id="right">→</button>
+    <button id="down">↓</button>
+    <button id="zoomOut">−</button>
+    <button id="zoomIn">+</button>
+  </div>
+
+  <script src="programming.js"></script>
+</body>
+</html>

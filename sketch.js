@@ -902,28 +902,28 @@ function setup() {
   mainCam.lookAt(0, 0, 0);
   setCamera(mainCam);
 
-  //let button = createButton('Export PDF');
+//  let button = createButton('Export PDF');
   //button.addClass('pdf-action export-pdf');
-  //button.attribute('aria-label', 'Export the current work as a PDF');
- // button.position(10, 620);
+ // button.attribute('aria-label', 'Export the current work as a PDF');
+  //button.position(10, 620);
  // button.mousePressed(() => exportPDF(canvas));
 
-  //let addPdfPageButton = createButton('Add PDF Page');
-  //addPdfPageButton.addClass('pdf-action add-pdf-page');
-  //addPdfPageButton.attribute('aria-label', 'Add the current work as a PDF page');
+ // let addPdfPageButton = createButton('Add PDF Page');
+ // addPdfPageButton.addClass('pdf-action add-pdf-page');
+ //addPdfPageButton.attribute('aria-label', 'Add the current work as a PDF page');
   //addPdfPageButton.position(10, 580);
  // addPdfPageButton.mousePressed(() => addPDFPage(document.body));
 }
 
-//document.addEventListener('keydown', (event) => {
-    // 3. Fix: Use " " for the spacebar
-  //  if (event.key === 'Alt') {
-  //    addPDFPage(document.body);
-  //  }
-  //  if (event.key === 'Control'){
-  //    exportPDF(canvas);
-  //  }
-//});
+document.addEventListener('keydown', (event) => {
+   //  3. Fix: Use " " for the spacebar
+    if (event.key === 'Alt') {
+      addPDFPage(document.body);
+    }
+    if (event.key === 'Control'){
+      exportPDF(canvas);
+    }
+});
 async function addPDFPage(targetElement = document.body) {
   const canvas = await html2canvas(targetElement, {
     useCORS: true,       // allow cross-origin images if any
