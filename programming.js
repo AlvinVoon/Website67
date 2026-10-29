@@ -15,7 +15,7 @@
     let current = null, savedStyle = '';
 
     // ---- Load SVG inline ----
-   fetch('foodv3.svg')
+   fetch('mantapFood.svg')
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then((text) => {
     stage.innerHTML = text;
@@ -27,20 +27,27 @@
     svg.setAttribute('height', ih);
 
     // ---- 1. Build the shapes list (the version from the previous step) ----
-    const SHAPE_TAGS = 'path,rect,circle,ellipse,polygon';
-    const MIN_THICKNESS = 0.03;
+   const SHAPE_TAGS = 'path,rect,circle,ellipse,polygon';
+const MIN_THICKNESS = 0.03;
 
-    shapes = [...svg.querySelectorAll(SHAPE_TAGS)]
-      .filter((el) => !el.closest('defs,clipPath,mask,symbol,pattern,marker'))
-      .filter((el) => {
-        const fill = getComputedStyle(el).fill;
-        return fill && fill !== 'none' && fill !== 'transparent';
-      })
-      .filter((el) => {
-        const b = el.getBBox();
-        const long = Math.max(b.width, b.height), short = Math.min(b.width, b.height);
-        return long > 0 && short / long >= MIN_THICKNESS;
-      });
+// Arrowheads in this SVG are solid black filled paths
+const isArrowhead = (el) => {
+  const f = (el.getAttribute('fill') || '').trim().toLowerCase().replace(/\s/g, '');
+  return el.tagName === 'path' && (f === '#000000' || f === '#000' || f === 'black' || f === 'rgb(0,0,0)');
+};
+
+shapes = [...svg.querySelectorAll(SHAPE_TAGS)]
+  .filter((el) => !isArrowhead(el))   // skipped BEFORE numbering, so shape-N ids stay the same
+  .filter((el) => !el.closest('defs,clipPath,mask,symbol,pattern,marker'))
+  .filter((el) => {
+    const fill = getComputedStyle(el).fill;
+    return fill && fill !== 'none' && fill !== 'transparent';
+  })
+  .filter((el) => {
+    const b = el.getBBox();
+    const long = Math.max(b.width, b.height), short = Math.min(b.width, b.height);
+    return long > 0 && short / long >= MIN_THICKNESS;
+  });
 
     // ---- 2. Method 1: ids and ordering goes HERE ----
    shapes.forEach((el, i) => { if (!el.id) el.id = 'shape-' + (i + 1); });
